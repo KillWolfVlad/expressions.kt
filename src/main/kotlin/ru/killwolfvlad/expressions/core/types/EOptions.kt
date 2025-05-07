@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.core
+package ru.killwolfvlad.expressions.core.types
 
 import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EClass
@@ -6,11 +6,15 @@ import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
 
-data class ExpressionExecutorOptions(
+/**
+ * Expression options
+ */
+data class EOptions(
     val binaryOperators: List<EBinaryOperator>,
     val leftUnaryOperators: List<ELeftUnaryOperator>,
     val rightUnaryOperators: List<ERightUnaryOperator>,
     val classes: List<EClass>,
-    val numberClass: EClass,
     val functions: List<EFunction>,
+    val numberClass: EClass,
+    val stringClass: EClass,
 )
