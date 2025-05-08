@@ -1,12 +1,13 @@
 package ru.killwolfvlad.expressions.base
 
+import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.types.EOptions
 
-fun buildExpressionBaseOptions(): EOptions {
-    val baseNumberClass = EBaseNumberClass()
-    val baseStringClass = EBaseStringClass()
-
-    return EOptions(
+fun buildExpressionBaseOptions(
+    numberClass: EClass = EBaseNumberClass(),
+    stringClass: EClass = EBaseStringClass(),
+): EOptions =
+    EOptions(
         binaryOperators =
             listOf(
                 EBasePlusBinaryOperator(),
@@ -21,9 +22,8 @@ fun buildExpressionBaseOptions(): EOptions {
                 EBaseMinusLeftUnaryOperator(),
             ),
         rightUnaryOperators = listOf(),
-        classes = listOf(baseNumberClass, baseStringClass),
-        functions = emptyList(),
-        numberClass = baseNumberClass,
-        stringClass = baseStringClass,
+        classes = listOf(numberClass, stringClass),
+        functions = listOf(EBaseVarFunction()),
+        numberClass = numberClass,
+        stringClass = stringClass,
     )
-}

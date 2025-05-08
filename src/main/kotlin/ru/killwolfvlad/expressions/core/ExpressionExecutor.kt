@@ -1,17 +1,183 @@
 package ru.killwolfvlad.expressions.core
 
-import ru.killwolfvlad.expressions.core.interfaces.EParser
+import ru.killwolfvlad.expressions.core.enums.ETokenType
+import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.EClass
+import ru.killwolfvlad.expressions.core.interfaces.EFunction
+import ru.killwolfvlad.expressions.core.interfaces.EInstance
+import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
+import ru.killwolfvlad.expressions.core.objects.EOpenBracket
+import ru.killwolfvlad.expressions.core.objects.ESemicolon
+import ru.killwolfvlad.expressions.core.types.EMemory
 import ru.killwolfvlad.expressions.core.types.EOptions
+import ru.killwolfvlad.expressions.core.types.EToken
 
+/**
+ * Expression executor
+ */
 class ExpressionExecutor(
-    private val options: EOptions,
-    val parser: EParser = EParserImpl(options),
+    options: EOptions,
 ) {
-    suspend fun execute(expression: String): Any =
-        options.numberClass
-            .createInstance(listOf("1"))
-            .applyBinaryOperator(
-                options.numberClass.createInstance(listOf("2")),
-                options.binaryOperators.find { it.description == "plus-binary-operator" }!!,
-            ).value
+    /**
+     * Expression parser
+     */
+    val parser: ExpressionParser = ExpressionParser(options)
+
+    /**
+     * Execute expression
+     */
+    suspend fun execute(
+        expression: String,
+        memory: EMemory = EMemory(),
+    ): Any = execute(parser.parse(expression), memory)
+
+    /**
+     * Execute expression
+     */
+    suspend fun execute(
+        tokens: List<EToken>,
+        memory: EMemory = EMemory(),
+    ): Any {
+        val instances = ArrayDeque<EInstance>()
+        val operators = ArrayDeque<EToken>()
+
+        for (token in tokens) {
+            when (token.type) {
+                ETokenType.SEMICOLON -> {
+                    while (!operators.isEmpty() && operators.first().symbol != EOpenBracket && operators.first().symbol != ESemicolon) {
+                        applyOperator(memory, instances, operators.removeFirst())
+                    }
+
+                    operators.addFirst(token)
+                }
+
+                ETokenType.OPEN_BRACKET -> operators.addFirst(token)
+
+                ETokenType.CLOSE_BRACKET -> {
+                    while (operators.first().symbol != EOpenBracket && operators.first().symbol != ESemicolon) {
+                        applyOperator(memory, instances, operators.removeFirst())
+                    }
+
+                    if (operators.first().symbol == EOpenBracket) {
+                        if (operators.size >= 2 && (operators[1].type == ETokenType.CALLABLE)) {
+                            val arguments =
+                                if (operators[1].callableWithoutArguments) {
+                                    listOf()
+                                } else {
+                                    listOf(instances.removeFirst())
+                                }
+
+                            when (operators[1].symbol) {
+                                is EClass ->
+                                    instances.addFirst(
+                                        (operators[1].symbol as EClass).createInstance(memory, arguments),
+                                    )
+
+                                is EFunction ->
+                                    instances.addFirst(
+                                        (operators[1].symbol as EFunction).execute(memory, arguments),
+                                    )
+                            }
+
+                            operators.removeFirst() // remove open bracket
+                            operators.removeFirst() // remove callable
+                        } else {
+                            operators.removeFirst() // remove open bracket
+                        }
+                    } else if (operators.first().symbol == ESemicolon) {
+                        val arguments = ArrayDeque<EInstance>()
+
+                        arguments.addFirst(instances.removeFirst())
+
+                        while (operators.first().symbol != EOpenBracket) {
+                            if (operators.first().symbol == ESemicolon) {
+                                arguments.addFirst(instances.removeFirst())
+
+                                operators.removeFirst()
+                            } else {
+                                throw Exception("unexpected operator ${operators.first().symbol::class.simpleName}!")
+                            }
+                        }
+
+                        if (operators.size >= 2 && (operators[1].type == ETokenType.CALLABLE)) {
+                            when (operators[1].symbol) {
+                                is EClass ->
+                                    instances.addFirst(
+                                        (operators[1].symbol as EClass).createInstance(memory, arguments),
+                                    )
+
+                                is EFunction ->
+                                    instances.addFirst(
+                                        (operators[1].symbol as EFunction).execute(memory, arguments),
+                                    )
+                            }
+
+                            operators.removeFirst() // remove open bracket
+                            operators.removeFirst() // remove callable
+                        } else {
+                            throw Exception("missing callable name!")
+                        }
+                    }
+                }
+
+                ETokenType.PRIMITIVE ->
+                    instances.addFirst(
+                        (token.symbol as EClass)
+                            .createInstance(memory, listOf(token.value)),
+                    )
+
+                ETokenType.BINARY_OPERATOR -> {
+                    while (!operators.isEmpty() &&
+                        operators.first().symbol.let { previousOperatorSymbol ->
+                            previousOperatorSymbol is ELeftUnaryOperator ||
+                                previousOperatorSymbol is EBinaryOperator &&
+                                previousOperatorSymbol.priority <= (token.symbol as EBinaryOperator).priority
+                        }
+                    ) {
+                        applyOperator(memory, instances, operators.removeFirst())
+                    }
+
+                    operators.addFirst(token)
+                }
+
+                ETokenType.LEFT_UNARY_OPERATOR -> operators.addFirst(token)
+
+                ETokenType.RIGHT_UNARY_OPERATOR -> applyOperator(memory, instances, token)
+
+                ETokenType.CALLABLE -> operators.addFirst(token)
+            }
+        }
+
+        while (!operators.isEmpty() && operators.first().symbol != ESemicolon) {
+            applyOperator(memory, instances, operators.removeFirst())
+        }
+
+        return instances.first().value
+    }
+
+    private suspend inline fun applyOperator(
+        memory: EMemory,
+        instances: ArrayDeque<EInstance>,
+        operator: EToken,
+    ) {
+        when (operator.symbol) {
+            is EBinaryOperator -> {
+                val right = instances.removeFirst()
+                val left = instances.removeFirst()
+
+                instances.addFirst(left.applyBinaryOperator(memory, right, operator.symbol))
+            }
+
+            is ELeftUnaryOperator -> {
+                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(memory, operator.symbol))
+            }
+
+            is ERightUnaryOperator -> {
+                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(memory, operator.symbol))
+            }
+
+            else -> throw Exception("unknown operator ${operator.symbol::class.simpleName}!")
+        }
+    }
 }

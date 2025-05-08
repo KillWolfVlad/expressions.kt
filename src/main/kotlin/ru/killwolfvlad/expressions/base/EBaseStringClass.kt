@@ -2,13 +2,17 @@ package ru.killwolfvlad.expressions.base
 
 import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
+import ru.killwolfvlad.expressions.core.types.EMemory
 
 class EBaseStringClass : EClass {
     override val description = "base string class"
 
     override val identifier = "String"
 
-    override fun createInstance(arguments: List<Any>): EInstance {
+    override suspend fun createInstance(
+        memory: EMemory,
+        arguments: List<Any>,
+    ): EInstance {
         if (arguments.size != 1) {
             throw IllegalArgumentException("arguments must have only one parameter!")
         }

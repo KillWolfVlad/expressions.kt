@@ -5,7 +5,7 @@ package ru.killwolfvlad.expressions.core.interfaces
  */
 interface EBinaryOperator : ESymbol {
     /**
-     * Binary operator order (the less, the more priority)
+     * Binary operator priority (the less, the more priority)
      */
-    val order: Int
+    val priority: Int
 }

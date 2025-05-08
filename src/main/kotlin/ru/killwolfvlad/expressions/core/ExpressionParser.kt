@@ -2,7 +2,6 @@ package ru.killwolfvlad.expressions.core
 
 import ru.killwolfvlad.expressions.core.enums.EReservedChar
 import ru.killwolfvlad.expressions.core.enums.ETokenType
-import ru.killwolfvlad.expressions.core.interfaces.EParser
 import ru.killwolfvlad.expressions.core.interfaces.ESymbol
 import ru.killwolfvlad.expressions.core.objects.ECloseBracket
 import ru.killwolfvlad.expressions.core.objects.EOpenBracket
@@ -11,11 +10,11 @@ import ru.killwolfvlad.expressions.core.types.EOptions
 import ru.killwolfvlad.expressions.core.types.EToken
 
 /**
- * Expression parser implementation
+ * Expression parser
  */
-class EParserImpl(
+class ExpressionParser(
     private val options: EOptions,
-) : EParser {
+) {
     private data class ParsingContext(
         val tokens: MutableList<EToken> = mutableListOf(),
         // current token
@@ -57,8 +56,7 @@ class EParserImpl(
                 ETokenType.BINARY_OPERATOR,
                 ETokenType.LEFT_UNARY_OPERATOR,
                 ETokenType.RIGHT_UNARY_OPERATOR,
-                ETokenType.CLASS,
-                ETokenType.FUNCTION,
+                ETokenType.CALLABLE,
             )
 
         private val FINAL_TOKEN_TYPES =
@@ -76,8 +74,7 @@ class EParserImpl(
                         ETokenType.OPEN_BRACKET,
                         ETokenType.PRIMITIVE,
                         ETokenType.LEFT_UNARY_OPERATOR,
-                        ETokenType.CLASS,
-                        ETokenType.FUNCTION,
+                        ETokenType.CALLABLE,
                     ),
                 listOf(ETokenType.OPEN_BRACKET) to
                     listOf(
@@ -85,8 +82,7 @@ class EParserImpl(
                         ETokenType.CLOSE_BRACKET,
                         ETokenType.PRIMITIVE,
                         ETokenType.LEFT_UNARY_OPERATOR,
-                        ETokenType.CLASS,
-                        ETokenType.FUNCTION,
+                        ETokenType.CALLABLE,
                     ),
                 listOf(ETokenType.CLOSE_BRACKET) to
                     listOf(
@@ -106,8 +102,7 @@ class EParserImpl(
                     listOf(
                         ETokenType.OPEN_BRACKET,
                         ETokenType.PRIMITIVE,
-                        ETokenType.CLASS,
-                        ETokenType.FUNCTION,
+                        ETokenType.CALLABLE,
                     ),
                 listOf(ETokenType.RIGHT_UNARY_OPERATOR) to
                     listOf(
@@ -119,10 +114,9 @@ class EParserImpl(
                     listOf(
                         ETokenType.OPEN_BRACKET,
                         ETokenType.PRIMITIVE,
-                        ETokenType.CLASS,
-                        ETokenType.FUNCTION,
+                        ETokenType.CALLABLE,
                     ),
-                listOf(ETokenType.CLASS, ETokenType.FUNCTION) to
+                listOf(ETokenType.CALLABLE) to
                     listOf(
                         ETokenType.OPEN_BRACKET,
                     ),
@@ -142,7 +136,7 @@ class EParserImpl(
     /**
      * Parse expression
      */
-    override fun parse(expression: String): List<EToken> =
+    fun parse(expression: String): List<EToken> =
         ParsingContext().run {
             expression.forEach { char ->
                 if (char == EReservedChar.QUOTATION_MARK.value) {
@@ -216,6 +210,16 @@ class EParserImpl(
                     currentTokenSymbol = options.numberClass
                 } else if (char.isWhitespace()) {
                     addCurrentToken()
+
+                    if (char == '\n' && tokens.isNotEmpty() && tokens[tokens.lastIndex].type != ETokenType.SEMICOLON) {
+                        val (singleCharTokenType, singleCharTokenSymbol) = SINGLE_CHAR_TOKENS_MAP[EReservedChar.SEMICOLON.value]!!
+
+                        currentTokenType = singleCharTokenType
+                        currentTokenValue.append(EReservedChar.SEMICOLON.value)
+                        currentTokenSymbol = singleCharTokenSymbol
+
+                        addCurrentToken()
+                    }
                 } else {
                     if (currentTokenType != null && currentTokenType !in TOKEN_TYPES_WITH_SYMBOL) {
                         addCurrentToken()
@@ -265,6 +269,10 @@ class EParserImpl(
                 tokens.removeAt(tokens.lastIndex)
             }
 
+            if (tokens.isEmpty()) {
+                throw Exception("expression can't be empty!")
+            }
+
             return tokens
         }
 
@@ -287,11 +295,11 @@ class EParserImpl(
         }
 
         if (identifier in classesMap) {
-            return ETokenType.CLASS to classesMap[identifier]!!
+            return ETokenType.CALLABLE to classesMap[identifier]!!
         }
 
         if (identifier in functionsMap) {
-            return ETokenType.FUNCTION to functionsMap[identifier]!!
+            return ETokenType.CALLABLE to functionsMap[identifier]!!
         }
 
         return null
@@ -391,7 +399,9 @@ class EParserImpl(
 
             val token0 = tokens[tokens.lastIndex - 2]
 
-            if (!(token0.type == ETokenType.CLASS || token0.type == ETokenType.FUNCTION)) {
+            if (token0.type == ETokenType.CALLABLE) {
+                tokens[tokens.lastIndex - 2] = token0.copy(callableWithoutArguments = true)
+            } else {
                 throw Exception("brackets can't be empty!")
             }
         }

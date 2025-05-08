@@ -3,14 +3,25 @@ package ru.killwolfvlad.expressions.core
 import io.kotest.core.spec.style.DescribeSpec
 import ru.killwolfvlad.expressions.base.buildExpressionBaseOptions
 
-class EParserImplTest : DescribeSpec({
-    val parser = EParserImpl(buildExpressionBaseOptions())
+class ExpressionParserTest : DescribeSpec({
+    val parser = ExpressionParser(buildExpressionBaseOptions())
 
     it("a") {
         val r =
             parser.parse(
                 """
                 "123" + ( "4456" - 8); String()
+                """.trimIndent(),
+            )
+
+        r.forEach { println(it) }
+    }
+
+    it("a1") {
+        val r =
+            parser.parse(
+                """
+                (1;2)
                 """.trimIndent(),
             )
 

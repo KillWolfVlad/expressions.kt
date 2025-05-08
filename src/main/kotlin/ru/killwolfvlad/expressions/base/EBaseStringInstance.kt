@@ -4,11 +4,13 @@ import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
+import ru.killwolfvlad.expressions.core.types.EMemory
 
 class EBaseStringInstance(
     override val value: String,
 ) : EInstance {
     override suspend fun applyBinaryOperator(
+        memory: EMemory,
         other: EInstance,
         operator: EBinaryOperator,
     ): EInstance {
@@ -22,9 +24,13 @@ class EBaseStringInstance(
         }
     }
 
-    override suspend fun applyLeftUnaryOperator(operator: ELeftUnaryOperator): EInstance =
-        throw Exception("unknown left unary operator ${operator::class.simpleName}!")
+    override suspend fun applyLeftUnaryOperator(
+        memory: EMemory,
+        operator: ELeftUnaryOperator,
+    ): EInstance = throw Exception("unknown left unary operator ${operator::class.simpleName}!")
 
-    override suspend fun applyRightUnaryOperator(operator: ERightUnaryOperator): EInstance =
-        throw Exception("unknown right unary operator ${operator::class.simpleName}!")
+    override suspend fun applyRightUnaryOperator(
+        memory: EMemory,
+        operator: ERightUnaryOperator,
+    ): EInstance = throw Exception("unknown right unary operator ${operator::class.simpleName}!")
 }

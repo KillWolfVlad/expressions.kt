@@ -10,4 +10,5 @@ data class EToken(
     val type: ETokenType,
     val value: String,
     val symbol: ESymbol,
+    val callableWithoutArguments: Boolean = false,
 )

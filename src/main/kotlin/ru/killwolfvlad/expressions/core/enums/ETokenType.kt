@@ -11,6 +11,5 @@ enum class ETokenType {
     BINARY_OPERATOR,
     LEFT_UNARY_OPERATOR,
     RIGHT_UNARY_OPERATOR,
-    CLASS,
-    FUNCTION,
+    CALLABLE,
 }
