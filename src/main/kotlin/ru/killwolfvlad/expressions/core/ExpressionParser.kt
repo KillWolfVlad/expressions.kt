@@ -1,6 +1,7 @@
 package ru.killwolfvlad.expressions.core
 
 import ru.killwolfvlad.expressions.core.enums.EReservedChar
+import ru.killwolfvlad.expressions.core.enums.EReservedIdentifier
 import ru.killwolfvlad.expressions.core.enums.ETokenType
 import ru.killwolfvlad.expressions.core.interfaces.ESymbol
 import ru.killwolfvlad.expressions.core.objects.ECloseBracket
@@ -280,6 +281,10 @@ class ExpressionParser(
         isExpressionStart: Boolean,
         identifier: String,
     ): Pair<ETokenType, ESymbol>? {
+        if (identifier == EReservedIdentifier.TRUE.value || identifier == EReservedIdentifier.FALSE.value) {
+            return ETokenType.PRIMITIVE to options.booleanClass
+        }
+
         if (isExpressionStart) {
             if (identifier in leftUnaryOperatorsMap) {
                 return ETokenType.LEFT_UNARY_OPERATOR to leftUnaryOperatorsMap[identifier]!!

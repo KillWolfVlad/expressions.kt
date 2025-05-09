@@ -17,4 +17,5 @@ data class EOptions(
     val functions: List<EFunction>,
     val numberClass: EClass,
     val stringClass: EClass,
+    val booleanClass: EClass,
 )

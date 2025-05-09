@@ -3,6 +3,3 @@ plugins {
 }
 
 rootProject.name = "expressions"
-
-include("exampleApp")
-include("loadTest")

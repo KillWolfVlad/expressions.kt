@@ -1,10 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-
 plugins {
     `maven-publish`
 
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinter)
 }
@@ -17,20 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.bundles.kotlinx)
-
-    api(libs.bundles.redis)
-    testImplementation(libs.bundles.redis)
-
-    testImplementation(kotlin("reflect"))
-
     testImplementation(libs.bundles.kotest)
-
-    testImplementation(libs.bundles.jedis)
-
-    testImplementation(libs.bundles.mockk)
-
-    testImplementation(libs.bundles.logback)
 }
 
 tasks.check {
@@ -39,11 +23,6 @@ tasks.check {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-}
-
-tasks.named<KotlinCompilationTask<*>>("compileTestKotlin").configure {
-    compilerOptions.freeCompilerArgs.add("-opt-in=ru.killwolfvlad.workflows.core.annotations.WorkflowsPerformance")
-    compilerOptions.freeCompilerArgs.add("-opt-in=io.lettuce.core.ExperimentalLettuceCoroutinesApi")
 }
 
 kotlin {
@@ -59,7 +38,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/KillWolfVlad/workflows.kt")
+            url = uri("https://maven.pkg.github.com/KillWolfVlad/expressions.kt")
 
             credentials {
                 username = providers.gradleProperty("gpr.user").orNull

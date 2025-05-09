@@ -1,10 +1,10 @@
 package ru.killwolfvlad.expressions.core
 
 import io.kotest.core.spec.style.DescribeSpec
-import ru.killwolfvlad.expressions.base.buildExpressionBaseOptions
+import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
 
 class ExpressionParserTest : DescribeSpec({
-    val parser = ExpressionParser(buildExpressionBaseOptions())
+    val parser = ExpressionParser(buildBaseExpressionOptions())
 
     it("a") {
         val r =

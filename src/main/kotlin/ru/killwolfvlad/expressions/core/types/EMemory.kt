@@ -5,7 +5,7 @@ package ru.killwolfvlad.expressions.core.types
  */
 data class EMemory(
     /**
-     * Key-Value memory
+     * Variables storage
      */
-    val kv: MutableMap<String, Any> = mutableMapOf(),
+    val variables: MutableMap<String, Any> = mutableMapOf(),
 )

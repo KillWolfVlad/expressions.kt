@@ -1,7 +1,7 @@
 # workflows.kt
 
 <p align="center">
-  <img src="./brand/logo.webp" width="250"/>
+  <img src="./brand/logo.jpg" width="250"/>
   <br>
 </p>
 
