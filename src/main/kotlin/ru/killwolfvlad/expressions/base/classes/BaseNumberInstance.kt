@@ -94,12 +94,17 @@ open class BaseNumberInstance(
                         roundingMode,
                     )
 
-                is BaseExponentiationBinaryOperator ->
+                is BaseExponentiationBinaryOperator -> {
+                    if (it.value.stripTrailingZeros().scale() > 0) {
+                        throw EException(context, "pow must be integer!")
+                    }
+
                     BaseNumberInstance(
                         value.pow(it.value.toInt()).setScale(scale, roundingMode),
                         scale,
                         roundingMode,
                     )
+                }
 
                 is BaseGreaterBinaryOperator -> BaseBooleanInstance(value > it.value)
 
