@@ -7,7 +7,7 @@ import ru.killwolfvlad.expressions.core.interfaces.ESymbol
  * Expression close bracket
  */
 object ECloseBracket : ESymbol {
-    override val description: String = "close bracket"
+    override val description = "close bracket"
 
-    override val identifier: String = EReservedChar.CLOSE_BRACKET.value.toString()
+    override val identifier = EReservedChar.CLOSE_BRACKET.value.toString()
 }

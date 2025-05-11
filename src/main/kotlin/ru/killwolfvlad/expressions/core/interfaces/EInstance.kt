@@ -1,6 +1,6 @@
 package ru.killwolfvlad.expressions.core.interfaces
 
-import ru.killwolfvlad.expressions.core.types.EMemory
+import ru.killwolfvlad.expressions.core.ExpressionExecutor
 
 /**
  * Expression instance
@@ -15,6 +15,7 @@ interface EInstance {
      * Apply binary operator
      */
     suspend fun applyBinaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         other: EInstance,
         operator: EBinaryOperator,
@@ -24,6 +25,7 @@ interface EInstance {
      * Apply left unary operator
      */
     suspend fun applyLeftUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ELeftUnaryOperator,
     ): EInstance
@@ -32,6 +34,7 @@ interface EInstance {
      * Apply right unary operator
      */
     suspend fun applyRightUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ERightUnaryOperator,
     ): EInstance

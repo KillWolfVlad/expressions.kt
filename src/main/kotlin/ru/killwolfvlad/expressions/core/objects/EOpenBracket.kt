@@ -7,7 +7,7 @@ import ru.killwolfvlad.expressions.core.interfaces.ESymbol
  * Expression open bracket
  */
 object EOpenBracket : ESymbol {
-    override val description: String = "open bracket"
+    override val description = "open bracket"
 
-    override val identifier: String = EReservedChar.OPEN_BRACKET.value.toString()
+    override val identifier = EReservedChar.OPEN_BRACKET.value.toString()
 }

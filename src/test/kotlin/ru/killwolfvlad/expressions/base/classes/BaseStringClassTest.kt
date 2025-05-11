@@ -7,44 +7,43 @@ import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import java.math.BigDecimal
 
-class BaseNumberClassTest : DescribeSpec({
+class BaseStringClassTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("must create instance from string") {
-        expressionExecutor.execute("20") shouldBe BigDecimal("20.00")
+        expressionExecutor.execute("\"ok\"") shouldBe "ok"
     }
 
     it("must create instance from BaseNumberInstance") {
-        expressionExecutor.execute("Number(20.25)") shouldBe BigDecimal("20.25")
+        expressionExecutor.execute("String(20)") shouldBe "20.00"
     }
 
     it("must create instance from BaseStringInstance") {
-        expressionExecutor.execute("Number(\"20\")") shouldBe BigDecimal("20.00")
+        expressionExecutor.execute("String(\"ok\")") shouldBe "ok"
     }
 
     describe("must create instance from BaseBooleanInstance") {
         it("when true") {
-            expressionExecutor.execute("Number(true)") shouldBe BigDecimal("1.00")
+            expressionExecutor.execute("String(true)") shouldBe "true"
         }
 
         it("when false") {
-            expressionExecutor.execute("Number(false)") shouldBe BigDecimal("0.00")
+            expressionExecutor.execute("String(false)") shouldBe "false"
         }
     }
 
     describe("exceptions") {
         it("must throw wrong count of arguments exception") {
             shouldThrowExactly<EException> {
-                expressionExecutor.execute("Number(1; 2)")
-            }.message shouldBe "Number: arguments count must be 1!"
+                expressionExecutor.execute("String(1; 2)")
+            }.message shouldBe "String: arguments count must be 1!"
         }
 
         it("must throw unsupported argument type exception") {
             shouldThrowExactly<EException> {
-                BaseNumberClass().createInstance(expressionExecutor, BaseMemory(), listOf(1))
-            }.message shouldBe "Number: unsupported argument type Int!"
+                BaseStringClass().createInstance(expressionExecutor, BaseMemory(), listOf(1))
+            }.message shouldBe "String: unsupported argument type Int!"
         }
     }
 })

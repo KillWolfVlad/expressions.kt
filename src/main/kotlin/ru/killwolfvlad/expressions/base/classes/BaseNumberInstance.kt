@@ -15,12 +15,13 @@ import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOpe
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BasePlusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.rightUnaryOperators.BasePercentRightUnaryOperator
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
+import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
-import ru.killwolfvlad.expressions.core.types.EMemory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.plus
@@ -38,6 +39,7 @@ open class BaseNumberInstance(
     }
 
     override suspend fun applyBinaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         other: EInstance,
         operator: EBinaryOperator,
@@ -114,9 +116,9 @@ open class BaseNumberInstance(
 
                 is BaseLessOrEqualBinaryOperator -> BaseBooleanInstance(value <= it.value)
 
-                is BaseEqualBinaryOperator -> BaseBooleanInstance(value == it.value)
+                is BaseEqualBinaryOperator -> BaseBooleanInstance(value.compareTo(it.value) == 0)
 
-                is BaseNotEqualBinaryOperator -> BaseBooleanInstance(value != it.value)
+                is BaseNotEqualBinaryOperator -> BaseBooleanInstance(value.compareTo(it.value) != 0)
 
                 else -> throw EException(
                     context,
@@ -126,6 +128,7 @@ open class BaseNumberInstance(
         }
 
     override suspend fun applyLeftUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ELeftUnaryOperator,
     ): EInstance =
@@ -141,6 +144,7 @@ open class BaseNumberInstance(
         }
 
     override suspend fun applyRightUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ERightUnaryOperator,
     ): EInstance =

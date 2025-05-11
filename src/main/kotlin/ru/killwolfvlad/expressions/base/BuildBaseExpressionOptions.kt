@@ -21,6 +21,7 @@ import ru.killwolfvlad.expressions.base.functions.BaseVarFunction
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BasePlusLeftUnaryOperator
+import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.base.rightUnaryOperators.BasePercentRightUnaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.types.EOptions
@@ -62,4 +63,5 @@ fun buildBaseExpressionOptions(
         numberClass = numberClass,
         stringClass = stringClass,
         booleanClass = booleanClass,
+        memoryFactory = { BaseMemory() },
     )

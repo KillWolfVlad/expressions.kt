@@ -237,6 +237,12 @@ class BaseNumberInstanceTest : DescribeSpec({
     }
 
     describe("exceptions") {
+        it("must throw argument type must be BaseNumberInstance exception") {
+            shouldThrowExactly<EException> {
+                expressionExecutor.execute("20 + true")
+            }.message shouldBe "BaseNumberInstance: argument type must be BaseNumberInstance!"
+        }
+
         it("must throw unsupported binary operator exception") {
             shouldThrowExactly<EException> {
                 expressionExecutor.execute("20 && 30")
@@ -250,7 +256,7 @@ class BaseNumberInstanceTest : DescribeSpec({
         }
 
         it("must throw unsupported right unary operator exception") {
-            class DollarRightUnaryOperator : ERightUnaryOperator {
+            class CustomRightUnaryOperator : ERightUnaryOperator {
                 override val description = ""
 
                 override val identifier = "$"
@@ -259,13 +265,13 @@ class BaseNumberInstanceTest : DescribeSpec({
             val customExpressionExecutor =
                 ExpressionExecutor(
                     buildBaseExpressionOptions().copy(
-                        rightUnaryOperators = listOf(DollarRightUnaryOperator()),
+                        rightUnaryOperators = listOf(CustomRightUnaryOperator()),
                     ),
                 )
 
             shouldThrowExactly<EException> {
                 customExpressionExecutor.execute("20$")
-            }.message shouldBe "BaseNumberInstance: unsupported right unary operator type DollarRightUnaryOperator!"
+            }.message shouldBe "BaseNumberInstance: unsupported right unary operator type CustomRightUnaryOperator!"
         }
     }
 })

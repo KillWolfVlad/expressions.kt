@@ -6,10 +6,10 @@ import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
 import ru.killwolfvlad.expressions.core.objects.EOpenBracket
 import ru.killwolfvlad.expressions.core.objects.ESemicolon
-import ru.killwolfvlad.expressions.core.types.EMemory
 import ru.killwolfvlad.expressions.core.types.EOptions
 import ru.killwolfvlad.expressions.core.types.EToken
 
@@ -17,7 +17,7 @@ import ru.killwolfvlad.expressions.core.types.EToken
  * Expression executor
  */
 class ExpressionExecutor(
-    options: EOptions,
+    val options: EOptions,
 ) {
     /**
      * Expression parser
@@ -29,7 +29,7 @@ class ExpressionExecutor(
      */
     suspend fun execute(
         expression: String,
-        memory: EMemory = EMemory(),
+        memory: EMemory = options.memoryFactory(),
     ): Any = execute(parser.parse(expression), memory)
 
     /**
@@ -37,7 +37,7 @@ class ExpressionExecutor(
      */
     suspend fun execute(
         tokens: List<EToken>,
-        memory: EMemory = EMemory(),
+        memory: EMemory = options.memoryFactory(),
     ): Any {
         val instances = ArrayDeque<EInstance>()
         val operators = ArrayDeque<EToken>()
@@ -71,12 +71,12 @@ class ExpressionExecutor(
                             when (operators[1].symbol) {
                                 is EClass ->
                                     instances.addFirst(
-                                        (operators[1].symbol as EClass).createInstance(memory, arguments),
+                                        (operators[1].symbol as EClass).createInstance(this, memory, arguments),
                                     )
 
                                 is EFunction ->
                                     instances.addFirst(
-                                        (operators[1].symbol as EFunction).execute(memory, arguments),
+                                        (operators[1].symbol as EFunction).execute(this, memory, arguments),
                                     )
                             }
 
@@ -104,12 +104,12 @@ class ExpressionExecutor(
                             when (operators[1].symbol) {
                                 is EClass ->
                                     instances.addFirst(
-                                        (operators[1].symbol as EClass).createInstance(memory, arguments),
+                                        (operators[1].symbol as EClass).createInstance(this, memory, arguments),
                                     )
 
                                 is EFunction ->
                                     instances.addFirst(
-                                        (operators[1].symbol as EFunction).execute(memory, arguments),
+                                        (operators[1].symbol as EFunction).execute(this, memory, arguments),
                                     )
                             }
 
@@ -124,7 +124,7 @@ class ExpressionExecutor(
                 ETokenType.PRIMITIVE ->
                     instances.addFirst(
                         (token.symbol as EClass)
-                            .createInstance(memory, listOf(token.value)),
+                            .createInstance(this, memory, listOf(token.value)),
                     )
 
                 ETokenType.BINARY_OPERATOR -> {
@@ -166,15 +166,15 @@ class ExpressionExecutor(
                 val right = instances.removeFirst()
                 val left = instances.removeFirst()
 
-                instances.addFirst(left.applyBinaryOperator(memory, right, operator.symbol))
+                instances.addFirst(left.applyBinaryOperator(this, memory, right, operator.symbol))
             }
 
             is ELeftUnaryOperator -> {
-                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(memory, operator.symbol))
+                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(this, memory, operator.symbol))
             }
 
             is ERightUnaryOperator -> {
-                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(memory, operator.symbol))
+                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(this, memory, operator.symbol))
             }
 
             else -> throw Exception("unknown operator ${operator.symbol::class.simpleName}!")

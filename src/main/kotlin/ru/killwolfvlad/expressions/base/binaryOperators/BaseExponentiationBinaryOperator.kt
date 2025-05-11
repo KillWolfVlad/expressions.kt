@@ -11,6 +11,5 @@ class BaseExponentiationBinaryOperator : EBinaryOperator {
 
     override val identifier = "**"
 
-    // TODO: make it right association
     override val priority = BaseBinaryOperatorPriority.MULTIPLY.value
 }

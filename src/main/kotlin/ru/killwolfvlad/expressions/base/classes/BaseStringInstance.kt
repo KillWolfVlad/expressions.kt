@@ -8,12 +8,13 @@ import ru.killwolfvlad.expressions.base.binaryOperators.BaseLessOrEqualBinaryOpe
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BasePlusBinaryOperator
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
+import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
-import ru.killwolfvlad.expressions.core.types.EMemory
 
 /**
  * Base string instance
@@ -26,6 +27,7 @@ open class BaseStringInstance(
     }
 
     override suspend fun applyBinaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         other: EInstance,
         operator: EBinaryOperator,
@@ -54,6 +56,7 @@ open class BaseStringInstance(
         }
 
     override suspend fun applyLeftUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ELeftUnaryOperator,
     ): EInstance =
@@ -63,6 +66,7 @@ open class BaseStringInstance(
         )
 
     override suspend fun applyRightUnaryOperator(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ERightUnaryOperator,
     ): EInstance =

@@ -1,10 +1,11 @@
 package ru.killwolfvlad.expressions.base.classes
 
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
+import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
-import ru.killwolfvlad.expressions.core.types.EMemory
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 
 /**
  * Base string class
@@ -15,6 +16,7 @@ open class BaseStringClass : EClass {
     override val identifier = "String"
 
     override suspend fun createInstance(
+        expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         arguments: List<Any>,
     ): EInstance =

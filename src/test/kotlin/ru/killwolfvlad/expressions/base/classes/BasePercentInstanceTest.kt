@@ -76,4 +76,40 @@ class BasePercentInstanceTest : DescribeSpec({
             expressionExecutor.execute("1000 / 20.25%") shouldBe BigDecimal("4938.27")
         }
     }
+
+    describe("BaseEqualBinaryOperator") {
+        it("20% == 0.2 = true") {
+            expressionExecutor.execute("20% == 0.2") shouldBe true
+        }
+
+        it("0.2 == 20% = true") {
+            expressionExecutor.execute("0.2 == 20%") shouldBe true
+        }
+
+        it("20% == 0.25 = false") {
+            expressionExecutor.execute("20% == 0.25") shouldBe false
+        }
+
+        it("0.25 == 20% = false") {
+            expressionExecutor.execute("0.25 == 20%") shouldBe false
+        }
+    }
+
+    describe("BaseNotEqualBinaryOperator") {
+        it("20% != 0.2 = false") {
+            expressionExecutor.execute("20% != 0.2") shouldBe false
+        }
+
+        it("0.2 != 20% = false") {
+            expressionExecutor.execute("0.2 != 20%") shouldBe false
+        }
+
+        it("20% != 0.25 = true") {
+            expressionExecutor.execute("20% != 0.25") shouldBe true
+        }
+
+        it("0.25 != 20% = true") {
+            expressionExecutor.execute("0.25 != 20%") shouldBe true
+        }
+    }
 })

@@ -4,6 +4,7 @@ import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
 
 /**
@@ -18,4 +19,5 @@ data class EOptions(
     val numberClass: EClass,
     val stringClass: EClass,
     val booleanClass: EClass,
+    val memoryFactory: () -> EMemory,
 )
