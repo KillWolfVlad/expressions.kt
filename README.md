@@ -49,7 +49,7 @@ gpr.user=xxx
 gpr.key=xxx
 ```
 
-You can find latest version in [GitHub Packages](https://github.com/KillWolfVlad/expressions.kt/packages/2397397).
+You can find latest version in [GitHub Packages](https://github.com/KillWolfVlad/expressions.kt/packages/2503335).
 
 > WARNING! Don' forget add `gradle-local.properties` to `.gitignore`
 
