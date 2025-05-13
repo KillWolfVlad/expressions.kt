@@ -12,76 +12,76 @@ class BaseBooleanInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("true = true") {
-        expressionExecutor.execute("true") shouldBe true
+        expressionExecutor.execute("true").value shouldBe true
     }
 
     it("false = false") {
-        expressionExecutor.execute("false") shouldBe false
+        expressionExecutor.execute("false").value shouldBe false
     }
 
     describe("BaseOrBinaryOperator") {
         it("false || false = false") {
-            expressionExecutor.execute("false || false") shouldBe false
+            expressionExecutor.execute("false || false").value shouldBe false
         }
 
         it("false || true = true") {
-            expressionExecutor.execute("false || true") shouldBe true
+            expressionExecutor.execute("false || true").value shouldBe true
         }
 
         it("true || false = true") {
-            expressionExecutor.execute("true || false") shouldBe true
+            expressionExecutor.execute("true || false").value shouldBe true
         }
 
         it("true || true = true") {
-            expressionExecutor.execute("true || true") shouldBe true
+            expressionExecutor.execute("true || true").value shouldBe true
         }
     }
 
     describe("BaseAndBinaryOperator") {
         it("false && false = false") {
-            expressionExecutor.execute("false && false") shouldBe false
+            expressionExecutor.execute("false && false").value shouldBe false
         }
 
         it("false && true = false") {
-            expressionExecutor.execute("false && true") shouldBe false
+            expressionExecutor.execute("false && true").value shouldBe false
         }
 
         it("true && false = false") {
-            expressionExecutor.execute("true && false") shouldBe false
+            expressionExecutor.execute("true && false").value shouldBe false
         }
 
         it("true && true = true") {
-            expressionExecutor.execute("true && true") shouldBe true
+            expressionExecutor.execute("true && true").value shouldBe true
         }
     }
 
     describe("BaseEqualBinaryOperator") {
         it("true == true = true") {
-            expressionExecutor.execute("true == true") shouldBe true
+            expressionExecutor.execute("true == true").value shouldBe true
         }
 
         it("true == false = false") {
-            expressionExecutor.execute("true == false") shouldBe false
+            expressionExecutor.execute("true == false").value shouldBe false
         }
     }
 
     describe("BaseNotEqualBinaryOperator") {
         it("true != true = false") {
-            expressionExecutor.execute("true != true") shouldBe false
+            expressionExecutor.execute("true != true").value shouldBe false
         }
 
         it("true == false = true") {
-            expressionExecutor.execute("true != false") shouldBe true
+            expressionExecutor.execute("true != false").value shouldBe true
         }
     }
 
     describe("BaseNotLeftUnaryOperator") {
         it("(!true) = false") {
-            expressionExecutor.execute("(!true)") shouldBe false
+            expressionExecutor.execute("(!true)").value shouldBe false
         }
 
         it("(!false) = true") {
-            expressionExecutor.execute("(!false)") shouldBe true
+            expressionExecutor.execute("(!false)").value shouldBe true
         }
     }
 

@@ -13,24 +13,24 @@ class BaseNumberClassTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("must create instance from string") {
-        expressionExecutor.execute("20") shouldBe BigDecimal("20.00")
+        expressionExecutor.execute("20").value shouldBe BigDecimal("20.00")
     }
 
     it("must create instance from BaseNumberInstance") {
-        expressionExecutor.execute("Number(20.25)") shouldBe BigDecimal("20.25")
+        expressionExecutor.execute("Number(20.25)").value shouldBe BigDecimal("20.25")
     }
 
     it("must create instance from BaseStringInstance") {
-        expressionExecutor.execute("Number(\"20\")") shouldBe BigDecimal("20.00")
+        expressionExecutor.execute("Number(\"20\")").value shouldBe BigDecimal("20.00")
     }
 
     describe("must create instance from BaseBooleanInstance") {
         it("when true") {
-            expressionExecutor.execute("Number(true)") shouldBe BigDecimal("1.00")
+            expressionExecutor.execute("Number(true)").value shouldBe BigDecimal("1.00")
         }
 
         it("when false") {
-            expressionExecutor.execute("Number(false)") shouldBe BigDecimal("0.00")
+            expressionExecutor.execute("Number(false)").value shouldBe BigDecimal("0.00")
         }
     }
 

@@ -12,8 +12,12 @@ import java.math.BigDecimal
 class BaseVarFunctionTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
+    it("must set variable") {
+        expressionExecutor.execute("var(\"a\"; 1)").value shouldBe BigDecimal("1.00")
+    }
+
     it("must set and get variable") {
-        expressionExecutor.execute("var(\"a\"; 1); var(\"a\")") shouldBe BigDecimal("1.00")
+        expressionExecutor.execute("var(\"a\"; 1); var(\"a\")").value shouldBe BigDecimal("1.00")
     }
 
     describe("exceptions") {

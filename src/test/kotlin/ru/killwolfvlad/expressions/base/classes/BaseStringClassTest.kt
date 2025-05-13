@@ -12,24 +12,24 @@ class BaseStringClassTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("must create instance from string") {
-        expressionExecutor.execute("\"ok\"") shouldBe "ok"
+        expressionExecutor.execute("\"ok\"").value shouldBe "ok"
     }
 
     it("must create instance from BaseNumberInstance") {
-        expressionExecutor.execute("String(20)") shouldBe "20.00"
+        expressionExecutor.execute("String(20)").value shouldBe "20.00"
     }
 
     it("must create instance from BaseStringInstance") {
-        expressionExecutor.execute("String(\"ok\")") shouldBe "ok"
+        expressionExecutor.execute("String(\"ok\")").value shouldBe "ok"
     }
 
     describe("must create instance from BaseBooleanInstance") {
         it("when true") {
-            expressionExecutor.execute("String(true)") shouldBe "true"
+            expressionExecutor.execute("String(true)").value shouldBe "true"
         }
 
         it("when false") {
-            expressionExecutor.execute("String(false)") shouldBe "false"
+            expressionExecutor.execute("String(false)").value shouldBe "false"
         }
     }
 

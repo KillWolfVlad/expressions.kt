@@ -12,11 +12,11 @@ class BaseIfFunctionTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("if(true; 1; 2) = 1") {
-        expressionExecutor.execute("if(true; 1; 2)") shouldBe BigDecimal("1.00")
+        expressionExecutor.execute("if(true; 1; 2)").value shouldBe BigDecimal("1.00")
     }
 
     it("if(false; 1; 2) = 2") {
-        expressionExecutor.execute("if(false; 1; 2)") shouldBe BigDecimal("2.00")
+        expressionExecutor.execute("if(false; 1; 2)").value shouldBe BigDecimal("2.00")
     }
 
     describe("exceptions") {

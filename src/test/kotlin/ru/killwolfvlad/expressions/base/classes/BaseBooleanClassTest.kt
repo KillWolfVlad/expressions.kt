@@ -13,41 +13,41 @@ class BaseBooleanClassTest : DescribeSpec({
 
     describe("must create instance from string") {
         it("when true") {
-            expressionExecutor.execute("true") shouldBe true
+            expressionExecutor.execute("true").value shouldBe true
         }
 
         it("when false") {
-            expressionExecutor.execute("false") shouldBe false
+            expressionExecutor.execute("false").value shouldBe false
         }
     }
 
     describe("must create instance from BaseNumberInstance") {
         it("when zero") {
-            expressionExecutor.execute("Boolean(0)") shouldBe false
+            expressionExecutor.execute("Boolean(0)").value shouldBe false
         }
 
         it("when non zero") {
-            expressionExecutor.execute("Boolean(1)") shouldBe true
+            expressionExecutor.execute("Boolean(1)").value shouldBe true
         }
     }
 
     describe("must create instance from BaseStringInstance") {
         it("when true") {
-            expressionExecutor.execute("Boolean(\"true\")") shouldBe true
+            expressionExecutor.execute("Boolean(\"true\")").value shouldBe true
         }
 
         it("when false") {
-            expressionExecutor.execute("Boolean(\"false\")") shouldBe false
+            expressionExecutor.execute("Boolean(\"false\")").value shouldBe false
         }
     }
 
     describe("must create instance from BaseBooleanInstance") {
         it("when true") {
-            expressionExecutor.execute("Boolean(true)") shouldBe true
+            expressionExecutor.execute("Boolean(true)").value shouldBe true
         }
 
         it("when false") {
-            expressionExecutor.execute("Boolean(false)") shouldBe false
+            expressionExecutor.execute("Boolean(false)").value shouldBe false
         }
     }
 

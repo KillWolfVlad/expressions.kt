@@ -16,6 +16,7 @@ import ru.killwolfvlad.expressions.base.binaryOperators.BasePlusBinaryOperator
 import ru.killwolfvlad.expressions.base.classes.BaseBooleanClass
 import ru.killwolfvlad.expressions.base.classes.BaseNumberClass
 import ru.killwolfvlad.expressions.base.classes.BaseStringClass
+import ru.killwolfvlad.expressions.base.functions.BaseFunFunction
 import ru.killwolfvlad.expressions.base.functions.BaseIfFunction
 import ru.killwolfvlad.expressions.base.functions.BaseVarFunction
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOperator
@@ -59,7 +60,7 @@ fun buildBaseExpressionOptions(
             ),
         rightUnaryOperators = listOf(BasePercentRightUnaryOperator()),
         classes = listOf(numberClass, stringClass, booleanClass),
-        functions = listOf(BaseVarFunction(), BaseIfFunction()),
+        functions = listOf(BaseIfFunction(), BaseVarFunction(), BaseFunFunction()),
         numberClass = numberClass,
         stringClass = stringClass,
         booleanClass = booleanClass,

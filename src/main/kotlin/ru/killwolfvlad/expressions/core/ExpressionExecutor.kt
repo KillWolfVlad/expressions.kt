@@ -30,7 +30,7 @@ class ExpressionExecutor(
     suspend fun execute(
         expression: String,
         memory: EMemory = options.memoryFactory(),
-    ): Any = execute(parser.parse(expression), memory)
+    ): EInstance = execute(parser.parse(expression), memory)
 
     /**
      * Execute expression
@@ -38,7 +38,7 @@ class ExpressionExecutor(
     suspend fun execute(
         tokens: List<EToken>,
         memory: EMemory = options.memoryFactory(),
-    ): Any {
+    ): EInstance {
         val instances = ArrayDeque<EInstance>()
         val operators = ArrayDeque<EToken>()
 
@@ -153,7 +153,7 @@ class ExpressionExecutor(
             applyOperator(memory, instances, operators.removeFirst())
         }
 
-        return instances.first().value
+        return instances.first()
     }
 
     private suspend inline fun applyOperator(

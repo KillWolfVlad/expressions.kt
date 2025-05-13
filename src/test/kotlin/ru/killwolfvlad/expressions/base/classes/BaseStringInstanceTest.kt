@@ -12,88 +12,88 @@ class BaseStringInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("\"ok\" = \"ok\"") {
-        expressionExecutor.execute("\"ok\"") shouldBe "ok"
+        expressionExecutor.execute("\"ok\"").value shouldBe "ok"
     }
 
     describe("BasePlusBinaryOperator") {
         it("\"a\" + \"b\" = \"ab\"") {
-            expressionExecutor.execute("\"a\" + \"b\"") shouldBe "ab"
+            expressionExecutor.execute("\"a\" + \"b\"").value shouldBe "ab"
         }
     }
 
     describe("BaseGreaterBinaryOperator") {
         it("\"a\" > \"a\" = false") {
-            expressionExecutor.execute("\"a\" > \"a\"") shouldBe false
+            expressionExecutor.execute("\"a\" > \"a\"").value shouldBe false
         }
 
         it("\"a\" > \"b\" = false") {
-            expressionExecutor.execute("\"a\" > \"b\"") shouldBe false
+            expressionExecutor.execute("\"a\" > \"b\"").value shouldBe false
         }
 
         it("\"b\" > \"a\" = true") {
-            expressionExecutor.execute("\"b\" > \"a\"") shouldBe true
+            expressionExecutor.execute("\"b\" > \"a\"").value shouldBe true
         }
     }
 
     describe("BaseGreaterOrEqualBinaryOperator") {
         it("\"a\" >= \"a\" = true") {
-            expressionExecutor.execute("\"a\" >= \"a\"") shouldBe true
+            expressionExecutor.execute("\"a\" >= \"a\"").value shouldBe true
         }
 
         it("\"a\" >= \"b\" = false") {
-            expressionExecutor.execute("\"a\" >= \"b\"") shouldBe false
+            expressionExecutor.execute("\"a\" >= \"b\"").value shouldBe false
         }
 
         it("\"b\" >= \"a\" = true") {
-            expressionExecutor.execute("\"b\" >= \"a\"") shouldBe true
+            expressionExecutor.execute("\"b\" >= \"a\"").value shouldBe true
         }
     }
 
     describe("BaseLessBinaryOperator") {
         it("\"a\" < \"a\" = false") {
-            expressionExecutor.execute("\"a\" < \"a\"") shouldBe false
+            expressionExecutor.execute("\"a\" < \"a\"").value shouldBe false
         }
 
         it("\"a\" < \"b\" = true") {
-            expressionExecutor.execute("\"a\" < \"b\"") shouldBe true
+            expressionExecutor.execute("\"a\" < \"b\"").value shouldBe true
         }
 
         it("\"b\" < \"a\" = false") {
-            expressionExecutor.execute("\"b\" < \"a\"") shouldBe false
+            expressionExecutor.execute("\"b\" < \"a\"").value shouldBe false
         }
     }
 
     describe("BaseLessOrEqualBinaryOperator") {
         it("\"a\" <= \"a\" = true") {
-            expressionExecutor.execute("\"a\" <= \"a\"") shouldBe true
+            expressionExecutor.execute("\"a\" <= \"a\"").value shouldBe true
         }
 
         it("\"a\" <= \"b\" = true") {
-            expressionExecutor.execute("\"a\" <= \"b\"") shouldBe true
+            expressionExecutor.execute("\"a\" <= \"b\"").value shouldBe true
         }
 
         it("\"b\" <= \"a\" = false") {
-            expressionExecutor.execute("\"b\" <= \"a\"") shouldBe false
+            expressionExecutor.execute("\"b\" <= \"a\"").value shouldBe false
         }
     }
 
     describe("BaseEqualBinaryOperator") {
         it("\"a\" == \"a\" = true") {
-            expressionExecutor.execute("\"a\" == \"a\"") shouldBe true
+            expressionExecutor.execute("\"a\" == \"a\"").value shouldBe true
         }
 
         it("\"a\" == \"b\" = false") {
-            expressionExecutor.execute("\"a\" == \"b\"") shouldBe false
+            expressionExecutor.execute("\"a\" == \"b\"").value shouldBe false
         }
     }
 
     describe("BaseNotEqualBinaryOperator") {
         it("\"a\" != \"a\" = false") {
-            expressionExecutor.execute("\"a\" != \"a\"") shouldBe false
+            expressionExecutor.execute("\"a\" != \"a\"").value shouldBe false
         }
 
         it("\"a\" != \"b\" = false") {
-            expressionExecutor.execute("\"a\" != \"b\"") shouldBe true
+            expressionExecutor.execute("\"a\" != \"b\"").value shouldBe true
         }
     }
 

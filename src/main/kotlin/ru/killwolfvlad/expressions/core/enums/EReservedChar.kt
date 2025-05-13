@@ -22,4 +22,6 @@ enum class EReservedChar(
     POINT('.'),
     COMMA(','),
     QUOTATION_MARK('"'),
+    LEFT_CURLY_BRACKET('{'),
+    RIGHT_CURLY_BRACKET('}'),
 }

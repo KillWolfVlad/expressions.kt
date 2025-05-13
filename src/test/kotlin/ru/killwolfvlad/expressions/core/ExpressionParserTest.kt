@@ -21,7 +21,7 @@ class ExpressionParserTest : DescribeSpec({
         val r =
             parser.parse(
                 """
-                (1;2)
+                `"a"`
                 """.trimIndent(),
             )
 

@@ -3,6 +3,7 @@ package ru.killwolfvlad.expressions.core
 import ru.killwolfvlad.expressions.core.enums.EReservedChar
 import ru.killwolfvlad.expressions.core.enums.EReservedIdentifier
 import ru.killwolfvlad.expressions.core.enums.ETokenType
+import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.ESymbol
 import ru.killwolfvlad.expressions.core.objects.ECloseBracket
 import ru.killwolfvlad.expressions.core.objects.EOpenBracket
@@ -25,12 +26,14 @@ class ExpressionParser(
         // flags
         var isExpressionStart: Boolean = true,
         var isNumberAfterPoint: Boolean = false,
-        var isStringAfterQuotationMark: Boolean = false,
+        var expectedStringCloseChar: Char? = null,
         // brackets
         var bracketsCount: Int = 0,
     )
 
     companion object {
+        private val context = ExpressionParser::class.simpleName!!
+
         private val SINGLE_CHAR_TOKENS_MAP =
             mapOf(
                 EReservedChar.SEMICOLON.value to (ETokenType.SEMICOLON to ESemicolon),
@@ -52,20 +55,20 @@ class ExpressionParser(
                 EReservedChar.DIGIT_0.value,
             )
 
-        private val TOKEN_TYPES_WITH_SYMBOL =
-            setOf(
-                ETokenType.BINARY_OPERATOR,
-                ETokenType.LEFT_UNARY_OPERATOR,
-                ETokenType.RIGHT_UNARY_OPERATOR,
-                ETokenType.CALLABLE,
-            )
-
         private val FINAL_TOKEN_TYPES =
             setOf(
                 ETokenType.SEMICOLON,
                 ETokenType.CLOSE_BRACKET,
                 ETokenType.PRIMITIVE,
                 ETokenType.RIGHT_UNARY_OPERATOR,
+            )
+
+        private val TOKEN_TYPES_WITH_IDENTIFIER =
+            setOf(
+                ETokenType.BINARY_OPERATOR,
+                ETokenType.LEFT_UNARY_OPERATOR,
+                ETokenType.RIGHT_UNARY_OPERATOR,
+                ETokenType.CALLABLE,
             )
 
         private val TOKEN_POSITIONS_MAP =
@@ -85,21 +88,14 @@ class ExpressionParser(
                         ETokenType.LEFT_UNARY_OPERATOR,
                         ETokenType.CALLABLE,
                     ),
-                listOf(ETokenType.CLOSE_BRACKET) to
+                listOf(ETokenType.CLOSE_BRACKET, ETokenType.PRIMITIVE) to
                     listOf(
                         ETokenType.SEMICOLON,
                         ETokenType.CLOSE_BRACKET,
                         ETokenType.BINARY_OPERATOR,
                         ETokenType.RIGHT_UNARY_OPERATOR,
                     ),
-                listOf(ETokenType.PRIMITIVE) to
-                    listOf(
-                        ETokenType.CLOSE_BRACKET,
-                        ETokenType.SEMICOLON,
-                        ETokenType.BINARY_OPERATOR,
-                        ETokenType.RIGHT_UNARY_OPERATOR,
-                    ),
-                listOf(ETokenType.LEFT_UNARY_OPERATOR) to
+                listOf(ETokenType.BINARY_OPERATOR, ETokenType.LEFT_UNARY_OPERATOR) to
                     listOf(
                         ETokenType.OPEN_BRACKET,
                         ETokenType.PRIMITIVE,
@@ -111,21 +107,11 @@ class ExpressionParser(
                         ETokenType.CLOSE_BRACKET,
                         ETokenType.BINARY_OPERATOR,
                     ),
-                listOf(ETokenType.BINARY_OPERATOR) to
-                    listOf(
-                        ETokenType.OPEN_BRACKET,
-                        ETokenType.PRIMITIVE,
-                        ETokenType.CALLABLE,
-                    ),
                 listOf(ETokenType.CALLABLE) to
                     listOf(
                         ETokenType.OPEN_BRACKET,
                     ),
             ).flatMap { it.first.map { key -> key to it.second.toSet() } }.toMap()
-    }
-
-    init {
-        validateOptions()
     }
 
     private val binaryOperatorsMap = options.binaryOperators.associateBy { it.identifier }
@@ -134,148 +120,61 @@ class ExpressionParser(
     private val classesMap = options.classes.associateBy { it.identifier }
     private val functionsMap = options.functions.associateBy { it.identifier }
 
+    init {
+        validateOptions()
+    }
+
     /**
      * Parse expression
      */
-    fun parse(expression: String): List<EToken> =
-        ParsingContext().run {
-            expression.forEach { char ->
-                if (char == EReservedChar.QUOTATION_MARK.value) {
-                    if (isStringAfterQuotationMark) {
-                        addCurrentToken()
-                    } else {
-                        addCurrentToken()
+    fun parse(expression: String): List<EToken> = ParsingContext().parse(expression)
 
-                        currentTokenType = ETokenType.PRIMITIVE
-                        currentTokenSymbol = options.stringClass
+    private inline fun validateOptions() {
+        val reservedIdentifiers =
+            (EReservedChar.entries.map { it.value.toString() } + EReservedIdentifier.entries.map { it.value }).toSet()
 
-                        isStringAfterQuotationMark = true
-                    }
+        val binaryOperatorIdentifiers = options.binaryOperators.map { it.identifier }
 
-                    return@forEach
-                }
+        val leftUnaryOperatorIdentifiers = options.leftUnaryOperators.map { it.identifier }
+        validateUnique(leftUnaryOperatorIdentifiers)
 
-                if (isCurrentTokenString()) {
-                    currentTokenValue.append(char)
+        val rightUnaryOperatorIdentifiers = options.rightUnaryOperators.map { it.identifier }
 
-                    return@forEach
-                }
+        val classIdentifiers = options.classes.map { it.identifier }
 
-                if (char in SINGLE_CHAR_TOKENS_MAP) {
-                    addCurrentToken()
+        val functionIdentifiers = options.functions.map { it.identifier }
 
-                    val (singleCharTokenType, singleCharTokenSymbol) = SINGLE_CHAR_TOKENS_MAP[char]!!
+        validateUnique(binaryOperatorIdentifiers + rightUnaryOperatorIdentifiers + classIdentifiers + functionIdentifiers)
+        validateUnique(leftUnaryOperatorIdentifiers + classIdentifiers + functionIdentifiers)
 
-                    currentTokenType = singleCharTokenType
-                    currentTokenValue.append(char)
-                    currentTokenSymbol = singleCharTokenSymbol
+        val userIdentifiers =
+            listOf(
+                binaryOperatorIdentifiers,
+                leftUnaryOperatorIdentifiers,
+                rightUnaryOperatorIdentifiers,
+                classIdentifiers,
+                functionIdentifiers,
+                listOf(
+                    options.numberClass.identifier,
+                    options.stringClass.identifier,
+                    options.booleanClass.identifier,
+                ),
+            ).flatten()
 
-                    addCurrentToken()
-
-                    if (singleCharTokenType == ETokenType.SEMICOLON || singleCharTokenType == ETokenType.OPEN_BRACKET) {
-                        isExpressionStart = true
-                    }
-
-                    if (singleCharTokenType == ETokenType.OPEN_BRACKET) {
-                        bracketsCount++
-                    }
-
-                    if (singleCharTokenType == ETokenType.CLOSE_BRACKET) {
-                        bracketsCount--
-
-                        if (bracketsCount < 0) {
-                            throw Exception("wrong number of brackets!")
-                        }
-                    }
-                } else if (char in DIGITS || char == EReservedChar.COMMA.value || char == EReservedChar.POINT.value) {
-                    val actualChar = if (char == EReservedChar.COMMA.value) EReservedChar.POINT.value else char
-
-                    if (actualChar == EReservedChar.POINT.value) {
-                        if (isNumberAfterPoint) {
-                            throw Exception("invalid number with double points!")
-                        } else {
-                            isNumberAfterPoint = true
-                        }
-                    }
-
-                    if (isCurrentTokenNumber()) {
-                        currentTokenValue.append(actualChar)
-
-                        return@forEach
-                    }
-
-                    addCurrentToken()
-
-                    currentTokenType = ETokenType.PRIMITIVE
-                    currentTokenValue.append(actualChar)
-                    currentTokenSymbol = options.numberClass
-                } else if (char.isWhitespace()) {
-                    addCurrentToken()
-
-                    if (char == '\n' && tokens.isNotEmpty() && tokens[tokens.lastIndex].type != ETokenType.SEMICOLON) {
-                        val (singleCharTokenType, singleCharTokenSymbol) = SINGLE_CHAR_TOKENS_MAP[EReservedChar.SEMICOLON.value]!!
-
-                        currentTokenType = singleCharTokenType
-                        currentTokenValue.append(EReservedChar.SEMICOLON.value)
-                        currentTokenSymbol = singleCharTokenSymbol
-
-                        addCurrentToken()
-                    }
-                } else {
-                    if (currentTokenType != null && currentTokenType !in TOKEN_TYPES_WITH_SYMBOL) {
-                        addCurrentToken()
-                    }
-
-                    currentTokenValue.append(char)
-
-                    val findResult1 = findTokenTypeAndSymbol(isExpressionStart, currentTokenValue.toString())
-
-                    if (findResult1 != null) {
-                        currentTokenType = findResult1.first
-                        currentTokenSymbol = findResult1.second
-                    } else if (currentTokenType != null) {
-                        currentTokenValue.let { currentTokenValue ->
-                            currentTokenValue.deleteCharAt(currentTokenValue.length - 1)
-                        }
-
-                        addCurrentToken()
-
-                        currentTokenValue.append(char)
-
-                        val findResult2 = findTokenTypeAndSymbol(isExpressionStart, currentTokenValue.toString())
-
-                        if (findResult2 != null) {
-                            currentTokenType = findResult2.first
-                            currentTokenSymbol = findResult2.second
-                        }
-                    }
-                }
+        for (userIdentifier in userIdentifiers) {
+            if (userIdentifier in reservedIdentifiers) {
+                throw EException(context, "$userIdentifier is reserved!")
             }
-
-            if (isCurrentTokenString()) {
-                throw Exception("string without closing quotation mark!")
-            }
-
-            if (bracketsCount != 0) {
-                throw Exception("wrong number of brackets!")
-            }
-
-            addCurrentToken()
-
-            if (!(tokens.isNotEmpty() && tokens[tokens.lastIndex].type in FINAL_TOKEN_TYPES)) {
-                throw Exception("expression is not completed!")
-            }
-
-            if (tokens[tokens.lastIndex].type == ETokenType.SEMICOLON) {
-                tokens.removeAt(tokens.lastIndex)
-            }
-
-            if (tokens.isEmpty()) {
-                throw Exception("expression can't be empty!")
-            }
-
-            return tokens
         }
+    }
+
+    private inline fun validateUnique(symbols: List<String>) {
+        symbols.groupBy { it }.forEach {
+            if (it.value.size > 1) {
+                throw EException(context, "found duplicated identifier ${it.key}!")
+            }
+        }
+    }
 
     private inline fun findTokenTypeAndSymbol(
         isExpressionStart: Boolean,
@@ -310,44 +209,199 @@ class ExpressionParser(
         return null
     }
 
-    private inline fun validateOptions() {
-        val reservedSymbols = EReservedChar.entries.map { it.value.toString() }.toSet()
-
-        val binaryOperatorSymbols = options.binaryOperators.map { it.identifier }
-
-        val leftUnaryOperatorSymbols = options.leftUnaryOperators.map { it.identifier }
-        validateUnique(leftUnaryOperatorSymbols)
-
-        val rightUnaryOperatorSymbols = options.rightUnaryOperators.map { it.identifier }
-
-        val classSymbols = options.classes.map { it.identifier }
-
-        val functionSymbols = options.functions.map { it.identifier }
-
-        validateUnique(binaryOperatorSymbols + rightUnaryOperatorSymbols + classSymbols + functionSymbols)
-        validateUnique(leftUnaryOperatorSymbols + classSymbols + functionSymbols)
-
-        val userSymbols =
-            listOf(
-                binaryOperatorSymbols,
-                leftUnaryOperatorSymbols,
-                rightUnaryOperatorSymbols,
-                classSymbols,
-                functionSymbols,
-                listOf(options.numberClass.identifier, options.stringClass.identifier),
-            ).flatten()
-
-        for (userSymbol in userSymbols) {
-            if (userSymbol in reservedSymbols) {
-                throw Exception("$userSymbol is reserved!")
-            }
+    private inline fun ParsingContext.parse(expression: String): List<EToken> {
+        expression.forEach f@{ char ->
+            tryParseString(char) ?: return@f
+            tryParseSingleCharToken(char) ?: return@f
+            tryParseNumber(char) ?: return@f
+            tryParseWhitespace(char) ?: return@f
+            tryParseIdentifier(char)
         }
+
+        if (isCurrentTokenString()) {
+            throw EException(context, "string without closing!")
+        }
+
+        if (bracketsCount != 0) {
+            throw EException(context, "wrong number of brackets!")
+        }
+
+        addCurrentToken()
+
+        if (!(tokens.isNotEmpty() && tokens[tokens.lastIndex].type in FINAL_TOKEN_TYPES)) {
+            throw EException(context, "expression is not completed!")
+        }
+
+        if (tokens[tokens.lastIndex].type == ETokenType.SEMICOLON) {
+            tokens.removeAt(tokens.lastIndex)
+        }
+
+        if (tokens.isEmpty()) {
+            throw EException(context, "expression can't be empty!")
+        }
+
+        return tokens
     }
 
-    private inline fun validateUnique(symbols: List<String>) {
-        symbols.groupBy { it }.forEach {
-            if (it.value.size > 1) {
-                throw Exception("found duplicated symbol ${it.value.size}!")
+    private inline fun ParsingContext.tryParseString(char: Char): Unit? {
+        if (char == EReservedChar.QUOTATION_MARK.value ||
+            char == EReservedChar.LEFT_CURLY_BRACKET.value ||
+            char == EReservedChar.RIGHT_CURLY_BRACKET.value
+        ) {
+            if (isCurrentTokenString()) {
+                if (char == expectedStringCloseChar) {
+                    addCurrentToken()
+                } else {
+                    currentTokenValue.append(char)
+                }
+            } else {
+                addCurrentToken()
+
+                currentTokenType = ETokenType.PRIMITIVE
+                currentTokenSymbol = options.stringClass
+
+                expectedStringCloseChar =
+                    when (char) {
+                        EReservedChar.QUOTATION_MARK.value -> char
+
+                        EReservedChar.LEFT_CURLY_BRACKET.value -> EReservedChar.RIGHT_CURLY_BRACKET.value
+
+                        EReservedChar.RIGHT_CURLY_BRACKET.value ->
+                            throw EException(context, "position of $char is not valid!")
+
+                        else -> throw EException(context, "string can't be parsed!")
+                    }
+            }
+
+            return null
+        }
+
+        if (isCurrentTokenString()) {
+            currentTokenValue.append(char)
+
+            return null
+        }
+
+        return Unit
+    }
+
+    private inline fun ParsingContext.tryParseSingleCharToken(char: Char): Unit? {
+        if (char in SINGLE_CHAR_TOKENS_MAP) {
+            addCurrentToken()
+
+            val (singleCharTokenType, singleCharTokenSymbol) = SINGLE_CHAR_TOKENS_MAP[char]!!
+
+            currentTokenType = singleCharTokenType
+            currentTokenValue.append(char)
+            currentTokenSymbol = singleCharTokenSymbol
+
+            addCurrentToken()
+
+            if (singleCharTokenType == ETokenType.SEMICOLON || singleCharTokenType == ETokenType.OPEN_BRACKET) {
+                isExpressionStart = true
+            }
+
+            if (singleCharTokenType == ETokenType.OPEN_BRACKET) {
+                bracketsCount++
+            }
+
+            if (singleCharTokenType == ETokenType.CLOSE_BRACKET) {
+                bracketsCount--
+
+                if (bracketsCount < 0) {
+                    throw EException(context, "wrong number of brackets!")
+                }
+            }
+
+            return null
+        }
+
+        return Unit
+    }
+
+    private inline fun ParsingContext.tryParseNumber(char: Char): Unit? {
+        if (char in DIGITS || char == EReservedChar.COMMA.value || char == EReservedChar.POINT.value) {
+            val actualChar = if (char == EReservedChar.COMMA.value) EReservedChar.POINT.value else char
+
+            if (actualChar == EReservedChar.POINT.value) {
+                if (isNumberAfterPoint) {
+                    throw EException(context, "invalid number with double points!")
+                } else {
+                    isNumberAfterPoint = true
+                }
+            }
+
+            if (isCurrentTokenNumber()) {
+                currentTokenValue.append(actualChar)
+            } else {
+                addCurrentToken()
+
+                currentTokenType = ETokenType.PRIMITIVE
+                currentTokenValue.append(actualChar)
+                currentTokenSymbol = options.numberClass
+            }
+
+            return null
+        }
+
+        return Unit
+    }
+
+    private inline fun ParsingContext.tryParseWhitespace(char: Char): Unit? {
+        if (char.isWhitespace()) {
+            addCurrentToken()
+
+            val isLastTokenValidForAutoSemicolon =
+                tokens.isNotEmpty() &&
+                    tokens[tokens.lastIndex].type != ETokenType.SEMICOLON &&
+                    tokens[tokens.lastIndex].type in FINAL_TOKEN_TYPES
+
+            if (char == '\n' &&
+                isLastTokenValidForAutoSemicolon &&
+                bracketsCount == 0
+            ) {
+                val (singleCharTokenType, singleCharTokenSymbol) =
+                    SINGLE_CHAR_TOKENS_MAP[EReservedChar.SEMICOLON.value]!!
+
+                currentTokenType = singleCharTokenType
+                currentTokenValue.append(EReservedChar.SEMICOLON.value)
+                currentTokenSymbol = singleCharTokenSymbol
+
+                addCurrentToken()
+            }
+
+            return null
+        }
+
+        return Unit
+    }
+
+    private inline fun ParsingContext.tryParseIdentifier(char: Char) {
+        if (currentTokenType != null && currentTokenType !in TOKEN_TYPES_WITH_IDENTIFIER) {
+            addCurrentToken()
+        }
+
+        currentTokenValue.append(char)
+
+        val findResult1 = findTokenTypeAndSymbol(isExpressionStart, currentTokenValue.toString())
+
+        if (findResult1 != null) {
+            currentTokenType = findResult1.first
+            currentTokenSymbol = findResult1.second
+        } else if (currentTokenType != null) {
+            currentTokenValue.let { currentTokenValue ->
+                currentTokenValue.deleteCharAt(currentTokenValue.length - 1)
+            }
+
+            addCurrentToken()
+
+            currentTokenValue.append(char)
+
+            val findResult2 = findTokenTypeAndSymbol(isExpressionStart, currentTokenValue.toString())
+
+            if (findResult2 != null) {
+                currentTokenType = findResult2.first
+                currentTokenSymbol = findResult2.second
             }
         }
     }
@@ -358,12 +412,12 @@ class ExpressionParser(
         currentTokenSymbol = null
 
         isNumberAfterPoint = false
-        isStringAfterQuotationMark = false
+        expectedStringCloseChar = null
     }
 
     private inline fun ParsingContext.addCurrentToken() {
         if (currentTokenType == null && currentTokenValue.isNotEmpty()) {
-            throw Exception("unknown identifier $currentTokenValue!")
+            throw EException(context, "unknown identifier $currentTokenValue!")
         }
 
         if (currentTokenType != null) {
@@ -394,12 +448,12 @@ class ExpressionParser(
         val validPositions = TOKEN_POSITIONS_MAP[token1?.type]!!
 
         if (token2.type !in validPositions) {
-            throw Exception("position of ${token2.value} is not valid!")
+            throw EException(context, "position of ${token2.value} is not valid!")
         }
 
         if (token1?.type == ETokenType.OPEN_BRACKET && token2.type == ETokenType.CLOSE_BRACKET) {
             if (tokens.size == 2) {
-                throw Exception("brackets can't be empty!")
+                throw EException(context, "brackets can't be empty!")
             }
 
             val token0 = tokens[tokens.lastIndex - 2]
@@ -407,7 +461,7 @@ class ExpressionParser(
             if (token0.type == ETokenType.CALLABLE) {
                 tokens[tokens.lastIndex - 2] = token0.copy(callableWithoutArguments = true)
             } else {
-                throw Exception("brackets can't be empty!")
+                throw EException(context, "brackets can't be empty!")
             }
         }
     }

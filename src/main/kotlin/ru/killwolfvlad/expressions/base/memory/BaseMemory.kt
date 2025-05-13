@@ -11,4 +11,8 @@ open class BaseMemory(
      * Variables storage
      */
     val variables: MutableMap<String, EInstance> = mutableMapOf(),
+    /**
+     * Functions storage
+     */
+    val functions: MutableMap<String, BaseFunctionCache> = mutableMapOf(),
 ) : EMemory
