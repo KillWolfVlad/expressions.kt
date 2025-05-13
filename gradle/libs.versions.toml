@@ -1,0 +1,25 @@
+[versions]
+# plugins
+kotlin = "2.1.21" # https://github.com/JetBrains/kotlin
+detekt = "1.23.8" # https://github.com/detekt/detekt
+kotlinter = "5.0.2" # https://github.com/jeremymailen/kotlinter-gradle
+
+# kotest
+kotest = "6.0.0.M4" # https://github.com/kotest/kotest
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
+
+[libraries]
+# kotest
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+
+[bundles]
+
+kotest = [
+  "kotest-runner-junit5",
+  "kotest-assertions-core",
+]
