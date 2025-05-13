@@ -12,6 +12,7 @@ Embedded Expression Language for Kotlin.
 - Built-in primitives support: number, string and boolean with your own implementation under the hood (e.g. use double or BigDecimal for numbers)
 - Extend expressions with your own binary, left and right operators, classes and functions
 - With memory you can add support of variables and user functions
+- Work with parsed expression tokens and modify it
 
 ## Install
 
