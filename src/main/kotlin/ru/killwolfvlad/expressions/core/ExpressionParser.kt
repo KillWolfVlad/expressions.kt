@@ -13,6 +13,7 @@ import ru.killwolfvlad.expressions.core.types.EToken
 
 /**
  * Expression parser
+ * TODO: add tests
  */
 class ExpressionParser(
     private val options: EOptions,
@@ -264,6 +265,7 @@ class ExpressionParser(
                     when (char) {
                         EReservedChar.QUOTATION_MARK.value -> char
 
+                        // TODO: parse {} as list of tokens
                         EReservedChar.LEFT_CURLY_BRACKET.value -> EReservedChar.RIGHT_CURLY_BRACKET.value
 
                         EReservedChar.RIGHT_CURLY_BRACKET.value ->

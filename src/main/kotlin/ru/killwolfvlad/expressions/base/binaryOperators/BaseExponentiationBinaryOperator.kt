@@ -5,6 +5,8 @@ import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 
 /**
  * Base exponentiation binary operator
+ * TODO: add right association for exponentiation binary operator
+ * TODO: see http://e-maxx.ru/algo/expressions_parsing for more info
  */
 class BaseExponentiationBinaryOperator : EBinaryOperator {
     override val description = "exponentiation binary operator"

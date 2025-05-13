@@ -1,18 +1,17 @@
-# workflows.kt
+# expressions.kt
 
 <p align="center">
   <img src="./brand/logo.jpg" width="250"/>
   <br>
 </p>
 
-Embedded Workflows As Code engine for Kotlin powered by Coroutines and Redis-like DB.
+Embedded Expression Language for Kotlin.
 
 ## Features
 
-- Durable workflows execution with scaling support
-- Minimal overhead for durable and fast workflows execution
-- Durable timers for notifications or any other delayed jobs
-- Run 100K+ workflows simultaneously, see [loadTest](./loadTest) for more info
+- Built-in primitives support: number, string and boolean with your own implementation under the hood (e.g. use double or BigDecimal for numbers)
+- Extend expressions with your own binary, left and right operators, classes and functions
+- With memory you can add support of variables and user functions
 
 ## Install
 
@@ -29,7 +28,7 @@ repositories {
     mavenCentral()
 
     maven {
-        url = uri("https://maven.pkg.github.com/KillWolfVlad/workflows.kt")
+        url = uri("https://maven.pkg.github.com/KillWolfVlad/expressions.kt")
 
         credentials {
             username = project.findProperty("gpr.user") as String?
@@ -39,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation("ru.killwolfvlad:workflows:version")
+    implementation("ru.killwolfvlad:expressions:version")
 }
 ```
 
@@ -50,34 +49,17 @@ gpr.user=xxx
 gpr.key=xxx
 ```
 
-You can find latest version in [GitHub Packages](https://github.com/KillWolfVlad/workflows.kt/packages/2397397).
+You can find latest version in [GitHub Packages](https://github.com/KillWolfVlad/expressions.kt/packages/2397397).
 
 > WARNING! Don' forget add `gradle-local.properties` to `.gitignore`
 
 ## Usage
 
-See [exampleApp](./exampleApp) for usage example.
-
-## Deploy
-
-We recommend use `HOSTNAME` environment variable for Worker ID and deploy application to [Stateful Sets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/).
+See [base](./src/main/kotlin/ru/killwolfvlad/expressions/base) and [base tests](./src/test/kotlin/ru/killwolfvlad/expressions/base) for usage example.
 
 ## Supported platforms
 
 - Java v21+ LTS
-
-## Official supported databases and clients
-
-| DB                       | Client                                       |
-| ------------------------ | -------------------------------------------- |
-| Redis Standalone v7.4.2+ | [LettuceRedisClient][LettuceRedisClient][^1] |
-| Redis Standalone v7.4.2+ | [ReThisRedisClient][ReThisRedisClient][^2]   |
-
-> We recommend use [ReThisRedisClient][ReThisRedisClient] in most cases
-
-### Custom clients
-
-Implement [KeyValueClient][KeyValueClient] to provide support for your DB using your library.
 
 ## Maintainers
 
@@ -87,10 +69,3 @@ Implement [KeyValueClient][KeyValueClient] to provide support for your DB using 
 
 This repository is released under version 2.0 of the
 [Apache License](https://www.apache.org/licenses/LICENSE-2.0).
-
-[KeyValueClient]: ./src/main/kotlin/ru/killwolfvlad/workflows/core/interfaces/KeyValueClient.kt
-[LettuceRedisClient]: ./src/main/kotlin/ru/killwolfvlad/workflows/clients/LettuceRedisClient.kt
-[ReThisRedisClient]: ./src/main/kotlin/ru/killwolfvlad/workflows/clients/ReThisRedisClient.kt
-
-[^1]: To use this client you must install [Lettuce for Kotlin API](https://redis.github.io/lettuce/user-guide/kotlin-api/) v6.5.4.RELEASE+
-[^2]: To use this client you must install [re.this](https://github.com/vendelieu/re.this) v0.2.9+

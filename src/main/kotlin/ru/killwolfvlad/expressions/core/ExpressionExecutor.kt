@@ -15,6 +15,7 @@ import ru.killwolfvlad.expressions.core.types.EToken
 
 /**
  * Expression executor
+ * TODO: add tests
  */
 class ExpressionExecutor(
     val options: EOptions,
