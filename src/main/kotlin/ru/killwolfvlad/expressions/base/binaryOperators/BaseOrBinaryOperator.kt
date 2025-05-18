@@ -1,14 +1,12 @@
 package ru.killwolfvlad.expressions.base.binaryOperators
 
 import ru.killwolfvlad.expressions.base.enums.BaseBinaryOperatorPriority
-import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
+import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
 
 /**
  * Base or binary operator
  */
-class BaseOrBinaryOperator : EBinaryOperator {
-    override val description = "or binary operator"
-
+open class BaseOrBinaryOperator : EBinaryOperator {
     override val identifier = "||"
 
     override val priority = BaseBinaryOperatorPriority.OR.value

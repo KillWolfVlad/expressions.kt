@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 
 class BaseBooleanInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
@@ -106,8 +106,6 @@ class BaseBooleanInstanceTest : DescribeSpec({
 
         it("must throw unsupported right unary operator exception") {
             class CustomRightUnaryOperator : ERightUnaryOperator {
-                override val description = ""
-
                 override val identifier = "$"
             }
 

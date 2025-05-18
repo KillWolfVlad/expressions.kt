@@ -46,5 +46,16 @@ class BaseVarFunctionTest : DescribeSpec({
                 expressionExecutor.execute("var(\"a\"; 1)", CustomMemory())
             }
         }
+
+        it("must throw exception when variable reassign wit different type") {
+            shouldThrowExactly<EException> {
+                expressionExecutor.execute(
+                    """
+                    var("a"; 1)
+                    var("a"; "1")
+                    """.trimIndent(),
+                )
+            }.message shouldBe "var: can't reassign variable with different type!"
+        }
     }
 })

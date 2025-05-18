@@ -22,6 +22,8 @@ enum class EReservedChar(
     POINT('.'),
     COMMA(','),
     QUOTATION_MARK('"'),
+    BACKSLASH('\\'),
+    NUMBER_SIGN('#'),
     LEFT_CURLY_BRACKET('{'),
     RIGHT_CURLY_BRACKET('}'),
 }

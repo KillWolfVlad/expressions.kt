@@ -1,6 +1,8 @@
-package ru.killwolfvlad.expressions.core.interfaces
+package ru.killwolfvlad.expressions.core.symbols
 
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
+import ru.killwolfvlad.expressions.core.interfaces.EInstance
+import ru.killwolfvlad.expressions.core.interfaces.EMemory
 
 /**
  * Expression function

@@ -1,19 +1,17 @@
 package ru.killwolfvlad.expressions.base.functions
 
-import ru.killwolfvlad.expressions.base.classes.BaseBooleanInstance
+import ru.killwolfvlad.expressions.base.primitives.BaseBooleanInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
-import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
+import ru.killwolfvlad.expressions.core.symbols.EFunction
 
 /**
  * Base if function
  */
-class BaseIfFunction : EFunction {
-    override val description = "if function"
-
+open class BaseIfFunction : EFunction {
     override val identifier = "if"
 
     override suspend fun execute(

@@ -52,6 +52,23 @@ class BaseFunFunctionTest : DescribeSpec({
             ).value shouldBe BigDecimal("100.00")
     }
 
+    it("must define and execute function in function") {
+        expressionExecutor
+            .execute(
+                """
+                fun("doubleAndPow2"; "a"; {
+                  fun("sum"; "a"; "b"; {
+                    var("a") + var("b")
+                  })
+
+                  fun("sum"; var("a"); var("a")) ** 2
+                })
+
+                fun("doubleAndPow2"; 5)
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("100.00")
+    }
+
     describe("exceptions") {
         it("must throw exception if function called without arguments") {
             shouldThrowExactly<EException> {
@@ -92,7 +109,7 @@ class BaseFunFunctionTest : DescribeSpec({
                     fun("sum"; "a"; 1)
                     """.trimIndent(),
                 )
-            }.message shouldBe "fun: argument type must be BaseStringInstance!"
+            }.message shouldBe "fun: argument type must be BaseStatementInstance!"
         }
     }
 })

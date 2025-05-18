@@ -4,11 +4,10 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
-import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 
-class BaseStringClassTest : DescribeSpec({
+class BaseStringConstructorTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("must create instance from string") {
@@ -42,8 +41,8 @@ class BaseStringClassTest : DescribeSpec({
 
         it("must throw unsupported argument type exception") {
             shouldThrowExactly<EException> {
-                BaseStringClass().createInstance(expressionExecutor, BaseMemory(), listOf(1))
-            }.message shouldBe "String: unsupported argument type Int!"
+                expressionExecutor.execute("String({3})")
+            }.message shouldBe "String: unsupported argument type BaseStatementInstance!"
         }
     }
 })

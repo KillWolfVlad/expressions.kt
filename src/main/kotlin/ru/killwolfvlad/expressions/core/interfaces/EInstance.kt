@@ -1,6 +1,9 @@
 package ru.killwolfvlad.expressions.core.interfaces
 
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
+import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 
 /**
  * Expression instance
@@ -9,7 +12,7 @@ interface EInstance {
     /**
      * Value
      */
-    val value: Any
+    val value: Any // TODO: use generic
 
     /**
      * Apply binary operator

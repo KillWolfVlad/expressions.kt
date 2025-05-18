@@ -1,11 +1,11 @@
 package ru.killwolfvlad.expressions.base.memory
 
-import ru.killwolfvlad.expressions.core.types.EToken
+import ru.killwolfvlad.expressions.core.tokens.EToken
 
 /**
  * Base function cache
  */
-data class BaseFunctionCache(
+open class BaseFunctionCache(
     val arguments: Map<Int, String>,
     val tokens: List<EToken>,
 )

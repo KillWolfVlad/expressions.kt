@@ -13,9 +13,6 @@ import ru.killwolfvlad.expressions.base.binaryOperators.BaseMultiplyBinaryOperat
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseOrBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BasePlusBinaryOperator
-import ru.killwolfvlad.expressions.base.classes.BaseBooleanClass
-import ru.killwolfvlad.expressions.base.classes.BaseNumberClass
-import ru.killwolfvlad.expressions.base.classes.BaseStringClass
 import ru.killwolfvlad.expressions.base.functions.BaseFunFunction
 import ru.killwolfvlad.expressions.base.functions.BaseIfFunction
 import ru.killwolfvlad.expressions.base.functions.BaseVarFunction
@@ -23,17 +20,25 @@ import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOpe
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BasePlusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
+import ru.killwolfvlad.expressions.base.primitives.BaseBooleanConstructor
+import ru.killwolfvlad.expressions.base.primitives.BaseNumberConstructor
+import ru.killwolfvlad.expressions.base.primitives.BaseStatementConstructor
+import ru.killwolfvlad.expressions.base.primitives.BaseStringConstructor
 import ru.killwolfvlad.expressions.base.rightUnaryOperators.BasePercentRightUnaryOperator
-import ru.killwolfvlad.expressions.core.interfaces.EClass
-import ru.killwolfvlad.expressions.core.types.EOptions
+import ru.killwolfvlad.expressions.core.EOptions
+import ru.killwolfvlad.expressions.core.symbols.EBooleanConstructor
+import ru.killwolfvlad.expressions.core.symbols.ENumberConstructor
+import ru.killwolfvlad.expressions.core.symbols.EStatementConstructor
+import ru.killwolfvlad.expressions.core.symbols.EStringConstructor
 
 /**
  * Build base expression options
  */
 fun buildBaseExpressionOptions(
-    numberClass: EClass = BaseNumberClass(),
-    stringClass: EClass = BaseStringClass(),
-    booleanClass: EClass = BaseBooleanClass(),
+    numberConstructor: ENumberConstructor = BaseNumberConstructor(),
+    stringConstructor: EStringConstructor = BaseStringConstructor(),
+    booleanConstructor: EBooleanConstructor = BaseBooleanConstructor(),
+    statementConstructor: EStatementConstructor = BaseStatementConstructor(),
 ): EOptions =
     EOptions(
         binaryOperators =
@@ -59,10 +64,19 @@ fun buildBaseExpressionOptions(
                 BaseNotLeftUnaryOperator(),
             ),
         rightUnaryOperators = listOf(BasePercentRightUnaryOperator()),
-        classes = listOf(numberClass, stringClass, booleanClass),
-        functions = listOf(BaseIfFunction(), BaseVarFunction(), BaseFunFunction()),
-        numberClass = numberClass,
-        stringClass = stringClass,
-        booleanClass = booleanClass,
+        functions =
+            listOf(
+                numberConstructor,
+                stringConstructor,
+                booleanConstructor,
+                statementConstructor,
+                BaseIfFunction(),
+                BaseVarFunction(),
+                BaseFunFunction(),
+            ),
+        numberConstructor = numberConstructor,
+        stringConstructor = stringConstructor,
+        booleanConstructor = booleanConstructor,
+        statementConstructor = statementConstructor,
         memoryFactory = { BaseMemory() },
     )

@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.core.interfaces
+package ru.killwolfvlad.expressions.core.symbols
 
 /**
  * Expression left unary operator

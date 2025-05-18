@@ -1,12 +1,10 @@
 package ru.killwolfvlad.expressions.base.rightUnaryOperators
 
-import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 
 /**
  * Base percent right unary operator
  */
-class BasePercentRightUnaryOperator : ERightUnaryOperator {
-    override val description = "base percent right unary operator"
-
+open class BasePercentRightUnaryOperator : ERightUnaryOperator {
     override val identifier = "%"
 }

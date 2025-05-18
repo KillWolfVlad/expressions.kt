@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import java.math.BigDecimal
 import java.math.RoundingMode

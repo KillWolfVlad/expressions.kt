@@ -4,12 +4,11 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
-import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import java.math.BigDecimal
 
-class BaseNumberClassTest : DescribeSpec({
+class BaseNumberConstructorTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
     it("must create instance from string") {
@@ -43,8 +42,8 @@ class BaseNumberClassTest : DescribeSpec({
 
         it("must throw unsupported argument type exception") {
             shouldThrowExactly<EException> {
-                BaseNumberClass().createInstance(expressionExecutor, BaseMemory(), listOf(1))
-            }.message shouldBe "Number: unsupported argument type Int!"
+                expressionExecutor.execute("Number({30})")
+            }.message shouldBe "Number: unsupported argument type BaseStatementInstance!"
         }
     }
 })

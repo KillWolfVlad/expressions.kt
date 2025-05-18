@@ -1,12 +1,10 @@
 package ru.killwolfvlad.expressions.base.leftUnaryOperators
 
-import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
 
 /**
  * Base minus left unary operator
  */
-class BaseMinusLeftUnaryOperator : ELeftUnaryOperator {
-    override val description = "base minus left unary operator"
-
+open class BaseMinusLeftUnaryOperator : ELeftUnaryOperator {
     override val identifier = "-"
 }

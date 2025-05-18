@@ -1,25 +1,29 @@
 package ru.killwolfvlad.expressions.core
 
-import ru.killwolfvlad.expressions.core.enums.ETokenType
-import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
-import ru.killwolfvlad.expressions.core.interfaces.EClass
-import ru.killwolfvlad.expressions.core.interfaces.EFunction
+import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
-import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
-import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
-import ru.killwolfvlad.expressions.core.objects.EOpenBracket
-import ru.killwolfvlad.expressions.core.objects.ESemicolon
-import ru.killwolfvlad.expressions.core.types.EOptions
-import ru.killwolfvlad.expressions.core.types.EToken
+import ru.killwolfvlad.expressions.core.symbols.EPrimitiveConstructor
+import ru.killwolfvlad.expressions.core.tokens.EBinaryOperatorToken
+import ru.killwolfvlad.expressions.core.tokens.ECloseBracketToken
+import ru.killwolfvlad.expressions.core.tokens.EFunctionToken
+import ru.killwolfvlad.expressions.core.tokens.ELeftUnaryOperatorToken
+import ru.killwolfvlad.expressions.core.tokens.EOpenBracketToken
+import ru.killwolfvlad.expressions.core.tokens.EPrimitiveToken
+import ru.killwolfvlad.expressions.core.tokens.ERightUnaryOperatorToken
+import ru.killwolfvlad.expressions.core.tokens.ESemicolonToken
+import ru.killwolfvlad.expressions.core.tokens.EToken
 
 /**
  * Expression executor
- * TODO: add tests
  */
 class ExpressionExecutor(
     val options: EOptions,
 ) {
+    companion object {
+        private val context = ExpressionExecutor::class.simpleName!!
+    }
+
     /**
      * Expression parser
      */
@@ -44,96 +48,79 @@ class ExpressionExecutor(
         val operators = ArrayDeque<EToken>()
 
         for (token in tokens) {
-            when (token.type) {
-                ETokenType.SEMICOLON -> {
-                    while (!operators.isEmpty() && operators.first().symbol != EOpenBracket && operators.first().symbol != ESemicolon) {
+            when (token) {
+                is ESemicolonToken -> {
+                    while (!operators.isEmpty() && operators.first() !is EOpenBracketToken && operators.first() !is ESemicolonToken) {
                         applyOperator(memory, instances, operators.removeFirst())
                     }
 
                     operators.addFirst(token)
                 }
 
-                ETokenType.OPEN_BRACKET -> operators.addFirst(token)
+                is EOpenBracketToken -> operators.addFirst(token)
 
-                ETokenType.CLOSE_BRACKET -> {
-                    while (operators.first().symbol != EOpenBracket && operators.first().symbol != ESemicolon) {
+                is ECloseBracketToken -> {
+                    while (operators.first() !is EOpenBracketToken && operators.first() !is ESemicolonToken) {
                         applyOperator(memory, instances, operators.removeFirst())
                     }
 
-                    if (operators.first().symbol == EOpenBracket) {
-                        if (operators.size >= 2 && (operators[1].type == ETokenType.CALLABLE)) {
+                    if (operators.first() is EOpenBracketToken) {
+                        if (operators.size >= 2 && (operators[1] is EFunctionToken)) {
                             val arguments =
-                                if (operators[1].callableWithoutArguments) {
+                                if ((operators[1] as EFunctionToken).withoutArguments) {
                                     listOf()
                                 } else {
                                     listOf(instances.removeFirst())
                                 }
 
-                            when (operators[1].symbol) {
-                                is EClass ->
-                                    instances.addFirst(
-                                        (operators[1].symbol as EClass).createInstance(this, memory, arguments),
-                                    )
-
-                                is EFunction ->
-                                    instances.addFirst(
-                                        (operators[1].symbol as EFunction).execute(this, memory, arguments),
-                                    )
-                            }
+                            instances.addFirst(
+                                (operators[1] as EFunctionToken).function.execute(this, memory, arguments),
+                            )
 
                             operators.removeFirst() // remove open bracket
                             operators.removeFirst() // remove callable
                         } else {
                             operators.removeFirst() // remove open bracket
                         }
-                    } else if (operators.first().symbol == ESemicolon) {
+                    } else if (operators.first() is ESemicolonToken) {
                         val arguments = ArrayDeque<EInstance>()
 
                         arguments.addFirst(instances.removeFirst())
 
-                        while (operators.first().symbol != EOpenBracket) {
-                            if (operators.first().symbol == ESemicolon) {
+                        while (operators.first() !is EOpenBracketToken) {
+                            if (operators.first() is ESemicolonToken) {
                                 arguments.addFirst(instances.removeFirst())
 
                                 operators.removeFirst()
                             } else {
-                                throw Exception("unexpected operator ${operators.first().symbol::class.simpleName}!")
+                                throw EException(context, "unexpected operator ${operators.first()}!")
                             }
                         }
 
-                        if (operators.size >= 2 && (operators[1].type == ETokenType.CALLABLE)) {
-                            when (operators[1].symbol) {
-                                is EClass ->
-                                    instances.addFirst(
-                                        (operators[1].symbol as EClass).createInstance(this, memory, arguments),
-                                    )
-
-                                is EFunction ->
-                                    instances.addFirst(
-                                        (operators[1].symbol as EFunction).execute(this, memory, arguments),
-                                    )
-                            }
+                        if (operators.size >= 2 && (operators[1] is EFunctionToken)) {
+                            instances.addFirst(
+                                (operators[1] as EFunctionToken).function.execute(this, memory, arguments),
+                            )
 
                             operators.removeFirst() // remove open bracket
                             operators.removeFirst() // remove callable
                         } else {
-                            throw Exception("missing callable name!")
+                            throw EException(context, "missing function name!")
                         }
                     }
                 }
 
-                ETokenType.PRIMITIVE ->
+                is EPrimitiveToken<*> ->
                     instances.addFirst(
-                        (token.symbol as EClass)
-                            .createInstance(this, memory, listOf(token.value)),
+                        (token.constructor as EPrimitiveConstructor<Any>).createInstance(this, memory, token.value as Any),
                     )
 
-                ETokenType.BINARY_OPERATOR -> {
+                is EBinaryOperatorToken -> {
                     while (!operators.isEmpty() &&
-                        operators.first().symbol.let { previousOperatorSymbol ->
-                            previousOperatorSymbol is ELeftUnaryOperator ||
-                                previousOperatorSymbol is EBinaryOperator &&
-                                previousOperatorSymbol.priority <= (token.symbol as EBinaryOperator).priority
+                        operators.first().let { previousOperatorSymbol ->
+                            previousOperatorSymbol is ELeftUnaryOperatorToken ||
+                                previousOperatorSymbol is EBinaryOperatorToken &&
+                                previousOperatorSymbol.operator.priority <= token.operator.priority
                         }
                     ) {
                         applyOperator(memory, instances, operators.removeFirst())
@@ -142,15 +129,15 @@ class ExpressionExecutor(
                     operators.addFirst(token)
                 }
 
-                ETokenType.LEFT_UNARY_OPERATOR -> operators.addFirst(token)
+                is ELeftUnaryOperatorToken -> operators.addFirst(token)
 
-                ETokenType.RIGHT_UNARY_OPERATOR -> applyOperator(memory, instances, token)
+                is ERightUnaryOperatorToken -> applyOperator(memory, instances, token)
 
-                ETokenType.CALLABLE -> operators.addFirst(token)
+                is EFunctionToken -> operators.addFirst(token)
             }
         }
 
-        while (!operators.isEmpty() && operators.first().symbol != ESemicolon) {
+        while (!operators.isEmpty() && operators.first() !is ESemicolonToken) {
             applyOperator(memory, instances, operators.removeFirst())
         }
 
@@ -162,23 +149,23 @@ class ExpressionExecutor(
         instances: ArrayDeque<EInstance>,
         operator: EToken,
     ) {
-        when (operator.symbol) {
-            is EBinaryOperator -> {
+        when (operator) {
+            is EBinaryOperatorToken -> {
                 val right = instances.removeFirst()
                 val left = instances.removeFirst()
 
-                instances.addFirst(left.applyBinaryOperator(this, memory, right, operator.symbol))
+                instances.addFirst(left.applyBinaryOperator(this, memory, right, operator.operator))
             }
 
-            is ELeftUnaryOperator -> {
-                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(this, memory, operator.symbol))
+            is ELeftUnaryOperatorToken -> {
+                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(this, memory, operator.operator))
             }
 
-            is ERightUnaryOperator -> {
-                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(this, memory, operator.symbol))
+            is ERightUnaryOperatorToken -> {
+                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(this, memory, operator.operator))
             }
 
-            else -> throw Exception("unknown operator ${operator.symbol::class.simpleName}!")
+            else -> throw Exception("unknown operator ${operator::class.simpleName}!")
         }
     }
 }

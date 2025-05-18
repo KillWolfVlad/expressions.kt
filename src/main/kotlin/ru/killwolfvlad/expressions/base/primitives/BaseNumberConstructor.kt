@@ -1,37 +1,39 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.EClass
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
+import ru.killwolfvlad.expressions.core.symbols.ENumberConstructor
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
  * Base number class
  */
-open class BaseNumberClass(
+open class BaseNumberConstructor(
     private val scale: Int = 2,
     private val roundingMode: RoundingMode = RoundingMode.HALF_EVEN,
-) : EClass {
-    override val description = "base number class"
-
+) : ENumberConstructor {
     override val identifier = "Number"
 
     override suspend fun createInstance(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
-        arguments: List<Any>,
+        value: String,
+    ): EInstance = createInstance(BigDecimal(value))
+
+    override suspend fun execute(
+        expressionExecutor: ExpressionExecutor,
+        memory: EMemory,
+        arguments: List<EInstance>,
     ): EInstance =
         baseValidateArgumentsCount(identifier, arguments, setOf(1)) {
             val argument = arguments[0]
 
             val value =
                 when (argument) {
-                    is String -> BigDecimal(argument)
-
                     is BaseNumberInstance -> argument.value
 
                     is BaseStringInstance -> BigDecimal((argument).value)
@@ -44,6 +46,9 @@ open class BaseNumberClass(
                     )
                 }
 
-            return BaseNumberInstance(value.setScale(scale, roundingMode), scale, roundingMode)
+            return createInstance(value)
         }
+
+    private inline fun createInstance(value: BigDecimal): EInstance =
+        BaseNumberInstance(value.setScale(scale, roundingMode), scale, roundingMode)
 }

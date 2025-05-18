@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseDivideBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperator
@@ -17,11 +17,11 @@ import ru.killwolfvlad.expressions.base.rightUnaryOperators.BasePercentRightUnar
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
-import ru.killwolfvlad.expressions.core.interfaces.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
-import ru.killwolfvlad.expressions.core.interfaces.ERightUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
+import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.plus

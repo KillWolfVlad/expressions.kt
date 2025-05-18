@@ -1,21 +1,19 @@
 package ru.killwolfvlad.expressions.base.functions
 
-import ru.killwolfvlad.expressions.base.classes.BaseStringInstance
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
+import ru.killwolfvlad.expressions.base.primitives.BaseStringInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
+import ru.killwolfvlad.expressions.core.symbols.EFunction
 
 /**
  * Base var function
  */
-class BaseVarFunction : EFunction {
-    override val description = "var function"
-
+open class BaseVarFunction : EFunction {
     override val identifier = "var"
 
     override suspend fun execute(
@@ -38,6 +36,12 @@ class BaseVarFunction : EFunction {
                         )
 
                     2 -> {
+                        memory.variables[key.value]?.let {
+                            if (it::class != arguments[1]::class) {
+                                throw EException(identifier, "can't reassign variable with different type!")
+                            }
+                        }
+
                         memory.variables[key.value] = arguments[1]
 
                         arguments[1]
