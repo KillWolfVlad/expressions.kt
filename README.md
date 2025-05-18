@@ -162,6 +162,8 @@ fun("fibonacci"; "n"; {
     })
   })
 })
+
+fun("fibonacci"; 10)
 ```
 
 ## Install
