@@ -72,27 +72,48 @@ class BaseVarFunctionTest : DescribeSpec({
             }.message shouldBe "var: variable with name a is not defined!"
         }
 
-        it("must throw exception when trying access to variable from other scope") {
-            shouldThrow<EException> {
-                expressionExecutor
-                    .execute(
-                        """
-                        var("a"; 1)
+        describe("must throw exception when trying access to variable from other scope") {
+            it("when variable defined inside expanded block") {
+                shouldThrow<EException> {
+                    expressionExecutor
+                        .execute(
+                            """
+                            var("a"; 1)
 
-                        if(true; {
-                          var("d"; 3)
-                          };
-                          false
-                        )
+                            if(true; {
+                              var("d"; 3)
+                              };
+                              false
+                            )
 
-                        var("d")
-                        """.trimIndent(),
-                    ).value
-            }.message shouldBe "var: variable with name d is not defined!"
+                            var("d")
+                            """.trimIndent(),
+                        ).value
+                }.message shouldBe "var: variable with name d is not defined!"
+            }
+
+            it("when variable defined inside expanded function") {
+                shouldThrow<EException> {
+                    expressionExecutor
+                        .execute(
+                            """
+                            var("a"; 1)
+
+                            fun("fun1"; {
+                              var("d"; 3)
+                            })
+
+                            var("d")
+                            """.trimIndent(),
+                        ).value
+                }.message shouldBe "var: variable with name d is not defined!"
+            }
         }
 
         it("must throw exception when memory is not BaseMemory") {
-            class CustomMemory : EMemory
+            class CustomMemory : EMemory {
+                override fun copy(): EMemory = throw NotImplementedError()
+            }
 
             shouldThrowExactly<ClassCastException> {
                 expressionExecutor.execute("var(\"a\"; 1)", CustomMemory())

@@ -92,6 +92,46 @@ class BaseFunFunctionTest : DescribeSpec({
             ).value shouldBe BigDecimal("100.00")
     }
 
+    it("must use captured variables and functions") {
+        expressionExecutor
+            .execute(
+                """
+                var("a"; 1)
+
+                fun("fun1"; {
+                  fun("fun2"; {
+                    fun("sum"; var("a") + 3; var("b") + 3)
+                  })
+
+                  var("a"; 5)
+
+                  fun("fun2")
+                })
+
+                var("b"; 2)
+
+                fun("sum"; "a"; "b"; {
+                  var("a") + var("b")
+                })
+
+                fun("fun1")
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("13.00")
+    }
+
+    it("eval") {
+        expressionExecutor
+            .execute(
+                """
+                fun("eval"; "s"; {
+                  if(true; Statement(var("s")); 0)
+                })
+
+                fun("eval"; "10 + 20")
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("30.00")
+    }
+
     describe("fibonacci") {
         val baseExpression =
             """
@@ -200,6 +240,29 @@ class BaseFunFunctionTest : DescribeSpec({
                     """.trimIndent(),
                 )
             }.message shouldBe "fun: argument type must be BaseStatementInstance!"
+        }
+
+        it("must throw exception when trying access to function from other scope") {
+            shouldThrowExactly<EException> {
+                expressionExecutor
+                    .execute(
+                        """
+                        fun("fun1"; {
+                          fun("sum"; 1; 2)
+                        })
+
+                        fun("fun2"; {
+                          fun("sum"; "a"; "b"; {
+                            var("a") + var("b")
+                          })
+
+                          fun("fun1")
+                        })
+
+                        fun("fun2")
+                        """.trimIndent(),
+                    )
+            }.message shouldBe "fun: argument type must be BaseStringInstance!"
         }
     }
 })

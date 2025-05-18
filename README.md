@@ -111,12 +111,13 @@ var("a"; "different type") # you can't reassign variable with different type
 # built-in function - fun
 # you can defined function
 fun("sum"; "a"; "b"; { # place expression body inside {}
-  var("a") + var("b") # every function is pure and can read only their arguments
+  # inside function you can also get access to other functions and variables in current visible scope
+  var("a") + var("b")
 })
 
 fun("sum"; 2; 3) # and invoke it later
 
-# you can also define function inside function, but remember that every function is pure
+# you can also define function inside function
 fun("double and pow 2"; "a"; {
   fun("double"; "a"; {
     var("a") * 2
