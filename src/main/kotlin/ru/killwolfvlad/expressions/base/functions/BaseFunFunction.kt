@@ -2,6 +2,8 @@ package ru.killwolfvlad.expressions.base.functions
 
 import ru.killwolfvlad.expressions.base.memory.BaseFunctionCache
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
+import ru.killwolfvlad.expressions.base.memory.BaseVariableRef
+import ru.killwolfvlad.expressions.base.memory.copyFunctions
 import ru.killwolfvlad.expressions.base.primitives.BaseStatementInstance
 import ru.killwolfvlad.expressions.base.primitives.BaseStringInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
@@ -37,15 +39,17 @@ open class BaseFunFunction : EFunction {
             val functionCache = memory.functions[functionName.value]
 
             if (functionCache != null) {
-                val functionMemory = (expressionExecutor.options.memoryFactory() as BaseMemory)
-
-                memory.functions.forEach { functionMemory.functions[it.key] = it.value }
+                val functionMemory =
+                    expressionExecutor.options
+                        .memoryFactory()
+                        .let { it as BaseMemory }
+                        .copyFunctions(memory)
 
                 arguments.subList(1, arguments.size).forEachIndexed { index, argument ->
                     val nameByPosition = functionCache.arguments[index]
 
                     if (nameByPosition != null) {
-                        functionMemory.variables[nameByPosition] = argument
+                        functionMemory.variables[nameByPosition] = BaseVariableRef(argument)
                     }
                 }
 

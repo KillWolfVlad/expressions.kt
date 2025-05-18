@@ -19,6 +19,24 @@ class BaseIfFunctionTest : DescribeSpec({
         expressionExecutor.execute("if(false; 1; 2)").value shouldBe BigDecimal("2.00")
     }
 
+    it("must expand then branch") {
+        expressionExecutor
+            .execute(
+                """
+                if(true; {10 + 30}; {10 + "2"})
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("40.00")
+    }
+
+    it("must expand else branch") {
+        expressionExecutor
+            .execute(
+                """
+                if(!true; {10 + "2"}; {10 + 30})
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("40.00")
+    }
+
     describe("exceptions") {
         it("must throw wrong count of arguments exception") {
             shouldThrowExactly<EException> {

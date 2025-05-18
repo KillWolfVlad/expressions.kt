@@ -1,5 +1,6 @@
 package ru.killwolfvlad.expressions.base.functions
 
+import ru.killwolfvlad.expressions.base.extensions.expand
 import ru.killwolfvlad.expressions.base.primitives.BaseBooleanInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
@@ -22,9 +23,9 @@ open class BaseIfFunction : EFunction {
         baseValidateArgumentsCount(identifier, arguments, setOf(3)) {
             baseValidateArgumentType<BaseBooleanInstance, EInstance>(identifier, arguments[0]) { condition ->
                 if (condition.value) {
-                    arguments[1]
+                    arguments[1].expand(expressionExecutor, memory)
                 } else {
-                    arguments[2]
+                    arguments[2].expand(expressionExecutor, memory)
                 }
             }
         }

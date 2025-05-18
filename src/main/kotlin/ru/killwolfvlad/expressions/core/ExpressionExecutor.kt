@@ -1,5 +1,6 @@
 package ru.killwolfvlad.expressions.core
 
+import ru.killwolfvlad.expressions.core.enums.EAssociativity
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
@@ -35,14 +36,19 @@ class ExpressionExecutor(
     suspend fun execute(
         expression: String,
         memory: EMemory = options.memoryFactory(),
-    ): EInstance = execute(parser.parse(expression), memory)
+    ): EInstance = processTokens(parser.parse(expression), memory)
 
     /**
-     * Execute expression
+     * Execute tokens
      */
     suspend fun execute(
         tokens: List<EToken>,
         memory: EMemory = options.memoryFactory(),
+    ): EInstance = processTokens(tokens, memory)
+
+    private suspend inline fun processTokens(
+        tokens: List<EToken>,
+        memory: EMemory,
     ): EInstance {
         val instances = ArrayDeque<EInstance>()
         val operators = ArrayDeque<EToken>()
@@ -78,7 +84,7 @@ class ExpressionExecutor(
                             )
 
                             operators.removeFirst() // remove open bracket
-                            operators.removeFirst() // remove callable
+                            operators.removeFirst() // remove function
                         } else {
                             operators.removeFirst() // remove open bracket
                         }
@@ -103,7 +109,7 @@ class ExpressionExecutor(
                             )
 
                             operators.removeFirst() // remove open bracket
-                            operators.removeFirst() // remove callable
+                            operators.removeFirst() // remove function
                         } else {
                             throw EException(context, "missing function name!")
                         }
@@ -116,13 +122,7 @@ class ExpressionExecutor(
                     )
 
                 is EBinaryOperatorToken -> {
-                    while (!operators.isEmpty() &&
-                        operators.first().let { previousOperatorSymbol ->
-                            previousOperatorSymbol is ELeftUnaryOperatorToken ||
-                                previousOperatorSymbol is EBinaryOperatorToken &&
-                                previousOperatorSymbol.operator.priority <= token.operator.priority
-                        }
-                    ) {
+                    while (canApplyOperator(operators, token)) {
                         applyOperator(memory, instances, operators.removeFirst())
                     }
 
@@ -144,28 +144,51 @@ class ExpressionExecutor(
         return instances.first()
     }
 
+    private inline fun canApplyOperator(
+        operators: ArrayDeque<EToken>,
+        currentOperatorToken: EBinaryOperatorToken,
+    ): Boolean {
+        if (operators.isEmpty()) {
+            return false
+        }
+
+        val previousOperatorToken = operators.first()
+
+        return when (previousOperatorToken) {
+            is ELeftUnaryOperatorToken -> true
+
+            is EBinaryOperatorToken ->
+                when (currentOperatorToken.operator.associativity) {
+                    EAssociativity.LR -> previousOperatorToken.operator.priority <= currentOperatorToken.operator.priority
+                    EAssociativity.RL -> previousOperatorToken.operator.priority < currentOperatorToken.operator.priority
+                }
+
+            else -> false
+        }
+    }
+
     private suspend inline fun applyOperator(
         memory: EMemory,
         instances: ArrayDeque<EInstance>,
-        operator: EToken,
+        operatorToken: EToken,
     ) {
-        when (operator) {
+        when (operatorToken) {
             is EBinaryOperatorToken -> {
                 val right = instances.removeFirst()
                 val left = instances.removeFirst()
 
-                instances.addFirst(left.applyBinaryOperator(this, memory, right, operator.operator))
+                instances.addFirst(left.applyBinaryOperator(this, memory, right, operatorToken.operator))
             }
 
             is ELeftUnaryOperatorToken -> {
-                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(this, memory, operator.operator))
+                instances.addFirst(instances.removeFirst().applyLeftUnaryOperator(this, memory, operatorToken.operator))
             }
 
             is ERightUnaryOperatorToken -> {
-                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(this, memory, operator.operator))
+                instances.addFirst(instances.removeFirst().applyRightUnaryOperator(this, memory, operatorToken.operator))
             }
 
-            else -> throw Exception("unknown operator ${operator::class.simpleName}!")
+            else -> throw EException(context, "unknown operator token ${operatorToken::class.simpleName}!")
         }
     }
 }

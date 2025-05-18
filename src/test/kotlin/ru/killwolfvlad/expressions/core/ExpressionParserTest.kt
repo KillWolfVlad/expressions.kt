@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
+import ru.killwolfvlad.expressions.core.enums.EAssociativity
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
@@ -130,6 +131,8 @@ class ExpressionParserTest : DescribeSpec({
                                 override val identifier: String = "%"
 
                                 override val priority = 0
+
+                                override val associativity = EAssociativity.LR
                             },
                         ),
                 )
@@ -164,6 +167,8 @@ class ExpressionParserTest : DescribeSpec({
                                 override val identifier: String = "fun"
 
                                 override val priority = 0
+
+                                override val associativity = EAssociativity.LR
                             },
                         ),
                 )
@@ -214,6 +219,8 @@ class ExpressionParserTest : DescribeSpec({
                                             override val identifier = testCase.identifier
 
                                             override val priority = 0
+
+                                            override val associativity = EAssociativity.LR
                                         },
                                     ),
                             ),
@@ -737,7 +744,7 @@ class ExpressionParserTest : DescribeSpec({
         }
     }
 
-    it("language example") {
+    it("example") {
         val options =
             defaultOptions.copy(
                 functions =
@@ -785,7 +792,7 @@ class ExpressionParserTest : DescribeSpec({
             10 - 20 # minus binary operator
             10 / 20 # divide binary operator
             10 * 20 # multiply binary operator
-            2 ** 3 # exponential binary operator
+            2 ** 3 # exponential binary operator, has right to left association, so 2 ** 3 ** 2 = 512
             true && false # and binary operator
             true || false # or binary operator
             10 > 20 # greater binary operator
@@ -795,11 +802,13 @@ class ExpressionParserTest : DescribeSpec({
             10 == 20 # qual binary operator
             10 != 20 # not qual binary operator
             # binary operator applies after left unary operator
-            # binary operator priority - 1) multiply (*, /, **)
-            #                            2) plus (+, -)
-            #                            3) and (&&)
-            #.                           4) or (||)
-            #                            5) compare (>, >=, <, <=, ==, !=)
+            # binary operator priority - 1) exponentiation (**)
+            #                            2) multiply (*, /)
+            #                            3) plus (+, -)
+            #                            4) compare (>, >=, <, <=)
+            #                            5) equal (==, !=)
+            #                            6) and (&&)
+            #                            7) or (||)
 
             10% # percent right unary operator
             # right unary operator can be only one

@@ -12,7 +12,7 @@ interface EInstance {
     /**
      * Value
      */
-    val value: Any // TODO: use generic
+    val value: Any
 
     /**
      * Apply binary operator

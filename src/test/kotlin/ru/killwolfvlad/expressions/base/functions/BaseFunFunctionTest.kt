@@ -69,6 +69,96 @@ class BaseFunFunctionTest : DescribeSpec({
             ).value shouldBe BigDecimal("100.00")
     }
 
+    it("must define and execute multiple functions in function") {
+        expressionExecutor
+            .execute(
+                """
+                fun("double and pow 2"; "a"; {
+                  fun("double"; "a"; {
+                    var("a") * 2
+                  })
+
+                  var("a"; fun("double"; var("a")))
+
+                  fun("pow2"; "a"; {
+                    var("a") ** 2
+                  })
+
+                  fun("pow2"; var("a"))
+                })
+
+                 fun("double and pow 2"; 5)
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("100.00")
+    }
+
+    describe("fibonacci") {
+        val baseExpression =
+            """
+            fun("fibonacci"; "n"; {
+              if(var("n") < 0; {
+                -1 ** (-var("n") + 1) * fun("fibonacci"; -var("n"))
+                }; {
+                if(var("n") == 0;
+                  0; {
+                  if(var("n") == 1;
+                    1; {
+                    fun("fibonacci"; var("n") - 1) + fun("fibonacci"; var("n") - 2)
+                  })
+                })
+              })
+            })
+            """.trimIndent()
+
+        val testCases =
+            listOf(
+                -30 to -832040,
+                -25 to 75025,
+                -10 to -55,
+                -9 to 34,
+                -8 to -21,
+                -7 to 13,
+                -6 to -8,
+                -5 to 5,
+                -4 to -3,
+                -3 to 2,
+                -2 to -1,
+                -1 to 1,
+                0 to 0,
+                1 to 1,
+                2 to 1,
+                3 to 2,
+                4 to 3,
+                5 to 5,
+                6 to 8,
+                7 to 13,
+                8 to 21,
+                9 to 34,
+                10 to 55,
+                11 to 89,
+                12 to 144,
+                13 to 233,
+                14 to 377,
+                25 to 75025,
+                30 to 832040,
+            )
+
+        testCases.forEach { testCase ->
+            it("fun(\"fibonacci\"; ${testCase.first}) = ${testCase.second}") {
+                expressionExecutor
+                    .execute(
+                        """
+                        $baseExpression
+
+                        fun("fibonacci"; ${testCase.first})
+                        """.trimIndent(),
+                    ).value
+                    .let { it as BigDecimal }
+                    .toInt() shouldBe testCase.second
+            }
+        }
+    }
+
     describe("exceptions") {
         it("must throw exception if function called without arguments") {
             shouldThrowExactly<EException> {

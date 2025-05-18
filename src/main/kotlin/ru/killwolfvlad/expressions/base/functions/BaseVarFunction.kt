@@ -1,6 +1,7 @@
 package ru.killwolfvlad.expressions.base.functions
 
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
+import ru.killwolfvlad.expressions.base.memory.BaseVariableRef
 import ru.killwolfvlad.expressions.base.primitives.BaseStringInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentsCount
@@ -30,19 +31,28 @@ open class BaseVarFunction : EFunction {
             baseValidateArgumentType<BaseStringInstance, EInstance>(identifier, arguments[0]) { key ->
                 when (arguments.size) {
                     1 ->
-                        memory.variables[key.value] ?: throw EException(
-                            identifier,
-                            "variable with name ${key.value} is not defined!",
-                        )
+                        {
+                            val variablePointer =
+                                memory.variables[key.value] ?: throw EException(
+                                    identifier,
+                                    "variable with name ${key.value} is not defined!",
+                                )
 
-                    2 -> {
-                        memory.variables[key.value]?.let {
-                            if (it::class != arguments[1]::class) {
-                                throw EException(identifier, "can't reassign variable with different type!")
-                            }
+                            variablePointer.value
                         }
 
-                        memory.variables[key.value] = arguments[1]
+                    2 -> {
+                        val variablePointer = memory.variables[key.value]
+
+                        if (variablePointer != null) {
+                            if (variablePointer.value::class != arguments[1]::class) {
+                                throw EException(identifier, "can't reassign variable with different type!")
+                            }
+
+                            variablePointer.value = arguments[1]
+                        } else {
+                            memory.variables[key.value] = BaseVariableRef(arguments[1])
+                        }
 
                         arguments[1]
                     }

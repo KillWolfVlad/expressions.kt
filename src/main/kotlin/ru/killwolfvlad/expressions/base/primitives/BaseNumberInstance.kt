@@ -97,7 +97,6 @@ open class BaseNumberInstance(
                     )
 
                 is BaseExponentiationBinaryOperator -> {
-                    // TODO: add fractional pow support
                     if (it.value.stripTrailingZeros().scale() > 0) {
                         throw EException(context, "pow must be integer!")
                     }

@@ -79,8 +79,8 @@ class BaseNumberInstanceTest : DescribeSpec({
             expressionExecutor.execute("-2 ** 3").value shouldBe BigDecimal("-8.00")
         }
 
-        it("2 ** 3 ** 2 = 64") {
-            expressionExecutor.execute("2 ** 3 ** 2").value shouldBe BigDecimal("64.00")
+        it("2 ** 3 ** 2 = 512") {
+            expressionExecutor.execute("2 ** 3 ** 2").value shouldBe BigDecimal("512.00")
         }
     }
 

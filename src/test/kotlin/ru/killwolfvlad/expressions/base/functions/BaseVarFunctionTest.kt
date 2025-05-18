@@ -1,5 +1,6 @@
 package ru.killwolfvlad.expressions.base.functions
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -20,6 +21,38 @@ class BaseVarFunctionTest : DescribeSpec({
         expressionExecutor.execute("var(\"a\"; 1); var(\"a\")").value shouldBe BigDecimal("1.00")
     }
 
+    it("must read captured variable") {
+        expressionExecutor
+            .execute(
+                """
+                var("a"; 5)
+
+                if(true; {
+                  var("a")
+                  };
+                  false
+                )
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("5.00")
+    }
+
+    it("must reassign captured variable") {
+        expressionExecutor
+            .execute(
+                """
+                var("a"; 1)
+
+                if(true; {
+                  var("a"; 3)
+                  };
+                  false
+                )
+
+                var("a")
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("3.00")
+    }
+
     describe("exceptions") {
         it("must throw wrong count of arguments exception") {
             shouldThrowExactly<EException> {
@@ -37,6 +70,25 @@ class BaseVarFunctionTest : DescribeSpec({
             shouldThrowExactly<EException> {
                 expressionExecutor.execute("var(\"a\")")
             }.message shouldBe "var: variable with name a is not defined!"
+        }
+
+        it("must throw exception when trying access to variable from other scope") {
+            shouldThrow<EException> {
+                expressionExecutor
+                    .execute(
+                        """
+                        var("a"; 1)
+
+                        if(true; {
+                          var("d"; 3)
+                          };
+                          false
+                        )
+
+                        var("d")
+                        """.trimIndent(),
+                    ).value
+            }.message shouldBe "var: variable with name d is not defined!"
         }
 
         it("must throw exception when memory is not BaseMemory") {
