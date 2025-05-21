@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
@@ -10,7 +10,7 @@ import ru.killwolfvlad.expressions.core.exceptions.EException
 class BaseBooleanConstructorTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
-    describe("must create instance from string") {
+    describe("must create instance from boolean") {
         it("when true") {
             expressionExecutor.execute("true").value shouldBe true
         }

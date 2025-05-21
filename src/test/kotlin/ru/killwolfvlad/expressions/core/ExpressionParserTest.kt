@@ -30,6 +30,7 @@ private data class WrongIdentifierTestCase(
 
 class ExpressionParserTest : DescribeSpec({
     val defaultOptions = buildBaseExpressionOptions()
+
     val expressionParser = ExpressionParser(defaultOptions)
 
     fun getNumberToken(
@@ -191,19 +192,19 @@ class ExpressionParserTest : DescribeSpec({
                     exceptionMessage = "ExpressionParser: identifier true is reserved!",
                 ),
                 WrongIdentifierTestCase(
-                    name = "must throw exception if identifier starts from digit",
+                    name = "must throw exception if identifier starts with digit",
                     identifier = "2B",
-                    exceptionMessage = "ExpressionParser: identifier 2B can't start from digit!",
+                    exceptionMessage = "ExpressionParser: identifier 2B can't starts with digit!",
                 ),
                 WrongIdentifierTestCase(
                     name = "must throw exception if identifier contains reserved char",
                     identifier = "a#b",
-                    exceptionMessage = "ExpressionParser: identifier a#b can't contains forbidden char!",
+                    exceptionMessage = "ExpressionParser: identifier a#b can't contains reserved char!",
                 ),
                 WrongIdentifierTestCase(
                     name = "must throw exception if identifier contains whitespace",
                     identifier = "a b",
-                    exceptionMessage = "ExpressionParser: identifier a b can't contains forbidden char!",
+                    exceptionMessage = "ExpressionParser: identifier a b can't contains whitespace!",
                 ),
             )
 
@@ -295,6 +296,15 @@ class ExpressionParserTest : DescribeSpec({
     }
 
     describe("parse string") {
+        it("must don't parse string inside comments") {
+            expressionParser.parse(
+                """
+                # "percent / 100"
+                1000
+                """.trimIndent(),
+            ) shouldBe listOf(getNumberToken("1000"))
+        }
+
         it("must parse empty string") {
             expressionParser.parse("\"\"") shouldBe listOf(getStringToken(""))
         }
@@ -346,17 +356,8 @@ class ExpressionParserTest : DescribeSpec({
 
         it("must throw exception if string without closing quotation mark") {
             shouldThrowExactly<EException> {
-                expressionParser.parse("\"a")
+                expressionParser.parse("\"ab")
             }.message shouldBe "ExpressionParser: string without closing quotation mark!"
-        }
-
-        it("must don't parse string inside comments") {
-            expressionParser.parse(
-                """
-                # "percent / 100"
-                1000
-                """.trimIndent(),
-            ) shouldBe listOf(getNumberToken("1000"))
         }
     }
 
@@ -366,9 +367,9 @@ class ExpressionParserTest : DescribeSpec({
                 """
                 # comment 1
                 "a#b" + "cb" # comment 2
-                 # comment 3
+                 # "comment 3"
                  10 + 20 # comment 4
-                  # comment 5
+                  # comment -5 # comment 6
                 """.trimIndent(),
             ) shouldBe
                 listOf(
@@ -393,13 +394,6 @@ class ExpressionParserTest : DescribeSpec({
                 )
         }
 
-        it("must remove trailing semicolon") {
-            expressionParser.parse("20;") shouldBe
-                listOf(
-                    getNumberToken("20"),
-                )
-        }
-
         it("must parse brackets") {
             expressionParser.parse("(20)") shouldBe
                 listOf(
@@ -414,16 +408,21 @@ class ExpressionParserTest : DescribeSpec({
                 expressionParser.parse(")")
             }.message shouldBe "ExpressionParser: wrong number of brackets!"
         }
-
-        it("must throw exception if expression don't has closing bracket") {
-            shouldThrowExactly<EException> {
-                expressionParser.parse("(20")
-            }.message shouldBe "ExpressionParser: wrong number of brackets!"
-        }
     }
 
     describe("parse statement") {
         it("must parse statement") {
+            expressionParser.parse("{30}") shouldBe
+                listOf(
+                    getStatementToken(
+                        listOf(
+                            getNumberToken("30"),
+                        ),
+                    ),
+                )
+        }
+
+        it("must parse nested statements") {
             expressionParser.parse(
                 """
                 {
@@ -460,6 +459,34 @@ class ExpressionParserTest : DescribeSpec({
     }
 
     describe("parse number") {
+        it("must skip number parsing if digits is part of identifier") {
+            val customOptions =
+                defaultOptions.copy(
+                    functions =
+                        listOf(
+                            object : EFunction {
+                                override val identifier = "pow2"
+
+                                override suspend fun execute(
+                                    expressionExecutor: ExpressionExecutor,
+                                    memory: EMemory,
+                                    arguments: List<EInstance>,
+                                ): EInstance = throw NotImplementedError()
+                            },
+                        ),
+                )
+
+            val customExpressionParser = ExpressionParser(customOptions)
+
+            customExpressionParser.parse("pow2(3)") shouldBe
+                listOf(
+                    getFunctionToken("pow2", options = customOptions),
+                    EOpenBracketToken,
+                    getNumberToken("3"),
+                    ECloseBracketToken,
+                )
+        }
+
         it("must parse number from single digit") {
             expressionParser.parse("3") shouldBe listOf(getNumberToken("3"))
         }
@@ -476,6 +503,14 @@ class ExpressionParserTest : DescribeSpec({
             expressionParser.parse("25,67") shouldBe listOf(getNumberToken("25.67"))
         }
 
+        it("must parse number starts from point") {
+            expressionParser.parse(".25") shouldBe listOf(getNumberToken(".25"))
+        }
+
+        it("must parse number ends with point") {
+            expressionParser.parse("25.") shouldBe listOf(getNumberToken("25."))
+        }
+
         it("must throw exception if number contains two points") {
             shouldThrowExactly<EException> {
                 expressionParser.parse("3.25.6")
@@ -486,34 +521,6 @@ class ExpressionParserTest : DescribeSpec({
             shouldThrowExactly<EException> {
                 expressionParser.parse(".")
             }.message shouldBe "ExpressionParser: invalid number!"
-        }
-
-        it("must skip number parsing when digits is part of identifier") {
-            val options =
-                defaultOptions.copy(
-                    functions =
-                        listOf(
-                            object : EFunction {
-                                override val identifier = "pow2"
-
-                                override suspend fun execute(
-                                    expressionExecutor: ExpressionExecutor,
-                                    memory: EMemory,
-                                    arguments: List<EInstance>,
-                                ): EInstance = throw NotImplementedError()
-                            },
-                        ),
-                )
-
-            val parser = ExpressionParser(options)
-
-            parser.parse("pow2(3)") shouldBe
-                listOf(
-                    getFunctionToken("pow2", options = options),
-                    EOpenBracketToken,
-                    getNumberToken("3"),
-                    ECloseBracketToken,
-                )
         }
     }
 
@@ -564,6 +571,34 @@ class ExpressionParserTest : DescribeSpec({
                     ESemicolonToken,
                     getNumberToken("25"),
                 )
+        }
+
+        it("must don't insert semicolon if expression is not completed") {
+            expressionParser.parse(
+                """
+                10 +
+                20
+                """.trimIndent(),
+            ) shouldBe
+                listOf(
+                    getNumberToken("10"),
+                    getBinaryOperatorToken("+"),
+                    getNumberToken("20"),
+                )
+        }
+
+        it("must don't insert semicolon inside brackets") {
+            shouldThrowExactly<EException> {
+                expressionParser.parse(
+                    """
+                    if(
+                      true
+                      1
+                      0
+                    )
+                    """.trimIndent(),
+                )
+            }.message shouldBe "ExpressionParser: position of 1 is not valid!"
         }
     }
 
@@ -665,8 +700,8 @@ class ExpressionParserTest : DescribeSpec({
 
         it("must throw exception if identifier is unknown") {
             shouldThrowExactly<EException> {
-                expressionParser.parse("a")
-            }.message shouldBe "ExpressionParser: unknown identifier a!"
+                expressionParser.parse("ab")
+            }.message shouldBe "ExpressionParser: unknown identifier ab!"
         }
     }
 
@@ -684,7 +719,7 @@ class ExpressionParserTest : DescribeSpec({
                 expressionParser.parse(
                     """
                     var(
-                      1;
+                      "a";
                       2;
                     )
                     """.trimIndent(),
@@ -692,7 +727,7 @@ class ExpressionParserTest : DescribeSpec({
                     listOf(
                         getFunctionToken("var"),
                         EOpenBracketToken,
-                        getNumberToken("1"),
+                        getStringToken("a"),
                         ESemicolonToken,
                         getNumberToken("2"),
                         ECloseBracketToken,
@@ -713,7 +748,7 @@ class ExpressionParserTest : DescribeSpec({
         }
 
         describe("when three or more tokens") {
-            it("if brackets empty after function must set withoutArguments = true") {
+            it("must set withoutArguments = true if brackets empty after function") {
                 expressionParser.parse("fun()") shouldBe
                     listOf(
                         getFunctionToken("fun", true),
@@ -731,9 +766,21 @@ class ExpressionParserTest : DescribeSpec({
     }
 
     describe("validate tokens") {
+        it("must throw exception if expression don't has close bracket") {
+            shouldThrowExactly<EException> {
+                expressionParser.parse("(20")
+            }.message shouldBe "ExpressionParser: wrong number of brackets!"
+        }
+
         it("must throw exception if expression empty") {
             shouldThrowExactly<EException> {
                 expressionParser.parse("")
+            }.message shouldBe "ExpressionParser: expression can't be empty!"
+        }
+
+        it("must throw exception if expression empty inside statement") {
+            shouldThrowExactly<EException> {
+                expressionParser.parse("{}")
             }.message shouldBe "ExpressionParser: expression can't be empty!"
         }
 
@@ -742,506 +789,12 @@ class ExpressionParserTest : DescribeSpec({
                 expressionParser.parse("10+")
             }.message shouldBe "ExpressionParser: expression is not completed!"
         }
-    }
 
-    it("example") {
-        val options =
-            defaultOptions.copy(
-                functions =
-                    defaultOptions.functions +
-                        listOf(
-                            object : EFunction {
-                                override val identifier = "someFun"
-
-                                override suspend fun execute(
-                                    expressionExecutor: ExpressionExecutor,
-                                    memory: EMemory,
-                                    arguments: List<EInstance>,
-                                ): EInstance = throw NotImplementedError()
-                            },
-                        ),
-            )
-
-        val parser = ExpressionParser(options)
-
-        parser.parse(
-            """
-            # comments starts from #
-
-            10 # this is number, also everything after # is comment and ignored
-            10.25 # number can be with point
-            10,25 # you also can use comma instead of point
-
-            "this is string" # simple string
-            "\" or \\ or \t or \r or \n" # you can escape some chars
-
-            "string also can be multiline
-            \r symbols always ignored in string"
-
-            true # use this reserved identifier for boolean true
-            false # use this reserved identifier for boolean false
-            # be careful, because parsing is case sensitivity
-
-            -10 # plus left unary operator
-            +10 # minus left unary operator
-            !true # not left unary operator
-            # left unary operator can be only one
-            # left unary operator applies after right unary operator
-
-            10 + 20 # plus binary operator
-            10 - 20 # minus binary operator
-            10 / 20 # divide binary operator
-            10 * 20 # multiply binary operator
-            2 ** 3 # exponential binary operator, has right to left association, so 2 ** 3 ** 2 = 512
-            true && false # and binary operator
-            true || false # or binary operator
-            10 > 20 # greater binary operator
-            10 >= 20 # greater or qual binary operator
-            10 < 20 # less binary operator
-            10 <= 20 # less or qual binary operator
-            10 == 20 # qual binary operator
-            10 != 20 # not qual binary operator
-            # binary operator applies after left unary operator
-            # binary operator priority - 1) exponentiation (**)
-            #                            2) multiply (*, /)
-            #                            3) plus (+, -)
-            #                            4) compare (>, >=, <, <=)
-            #                            5) equal (==, !=)
-            #                            6) and (&&)
-            #                            7) or (||)
-
-            10% # percent right unary operator
-            # right unary operator can be only one
-            # right unary operator has highest priority
-
-            1000 + 20% # 1200, you can easily add percentages
-            1000 - 20% # 800, you can easily subtract percentages
-
-            # in other cases percent will be used as "percent / 100"
-            1000 * 20% # 200
-            1000 / 20% # 500
-
-            -(10 + 20) # you can also use brackets
-            +(3 * (2 + 3)) # and brackets inside brackets
-
-            someFun() # invoke some built-in function without arguments (this function doesn't exists in base)
-            someFun(10; 20; 30) # invoke some built-in function with arguments (use ; to separate arguments)
-
-            10; 20; 30 # you can also ; to separate sub-expressions, last sub-expression will be used as result of execution
-            # ; is not required in most cases - you can just use new line and ; will be inserted automatically
-
-            10 +
-            20 # if expression is not completed auto ; is disabled
-
-            someFun(10;
-                    20;
-                    30; # trailing ; also supported
-            ) # inside brackets auto ; is disabled
-
-            # built-in function - if
-            if(true; 1; 2) # first argument - condition, second argument - then, third argument - else
-
-            # built-in function - var
-            # you can set variables
-            var("a"; 2)
-            var("b"; 3)
-
-            # and read it later
-            var("a") + var("b")
-
-            var("a"; 5) # you also can reassign variable, but it is not recommended, better create new variable
-            var("a"; "different type") # you can't reassign variable with different type
-
-            # built-in function - fun
-            # you can defined function
-            fun("sum"; "a"; "b"; { # place expression body inside {}
-              # inside function you can also get access to other functions and variables in current visible scope
-              var("a") + var("b")
-            })
-
-            fun("sum"; 2; 3) # and invoke it later
-
-            # you can also define function inside function
-            fun("double and pow 2"; "a"; {
-              fun("double"; "a"; {
-                var("a") * 2
-              })
-
-              var("a"; fun("double"; var("a")))
-
-              fun("pow2"; "a"; {
-                var("a") ** 2
-              })
-
-              fun("pow2"; var("a"))
-            })
-
-            fun("double and pow 2"; 5) # you can use any string as function identifier, because it is string :)
-            # but for built-in function you can't use any identifier
-
-            # language is dynamically typed, but strong typed under the under the hood
-            # you can't work with different types
-            10 + "2" # it is error
-
-            # you must use functions to explicit convert types
-            Number("10") # to convert string or boolean to number
-            String(10) # to convert number or boolean to string
-            Boolean(1) # to convert number or string to boolean
-            """.trimIndent(),
-        ) shouldBe
-            listOf(
-                getNumberToken("10"),
-                ESemicolonToken,
-                getNumberToken("10.25"),
-                ESemicolonToken,
-                getNumberToken("10.25"),
-                ESemicolonToken,
-                //
-                getStringToken("this is string"),
-                ESemicolonToken,
-                getStringToken("\" or \\ or \t or \r or \n"),
-                ESemicolonToken,
-                //
-                getStringToken("string also can be multiline\n\r symbols always ignored in string"),
-                ESemicolonToken,
-                //
-                getBooleanToken(true),
-                ESemicolonToken,
-                getBooleanToken(false),
-                ESemicolonToken,
-                //
-                getLeftUnaryOperatorToken("-"),
-                getNumberToken("10"),
-                ESemicolonToken,
-                getLeftUnaryOperatorToken("+"),
-                getNumberToken("10"),
-                ESemicolonToken,
-                getLeftUnaryOperatorToken("!"),
-                getBooleanToken(true),
-                ESemicolonToken,
-                //
-                getNumberToken("10"),
-                getBinaryOperatorToken("+"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("-"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("/"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("*"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("2"),
-                getBinaryOperatorToken("**"),
-                getNumberToken("3"),
-                ESemicolonToken,
-                getBooleanToken(true),
-                getBinaryOperatorToken("&&"),
-                getBooleanToken(false),
-                ESemicolonToken,
-                getBooleanToken(true),
-                getBinaryOperatorToken("||"),
-                getBooleanToken(false),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken(">"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken(">="),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("<"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("<="),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("=="),
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("!="),
-                getNumberToken("20"),
-                ESemicolonToken,
-                //
-                getNumberToken("10"),
-                getRightUnaryOperatorToken("%"),
-                ESemicolonToken,
-                //
-                getNumberToken("1000"),
-                getBinaryOperatorToken("+"),
-                getNumberToken("20"),
-                getRightUnaryOperatorToken("%"),
-                ESemicolonToken,
-                getNumberToken("1000"),
-                getBinaryOperatorToken("-"),
-                getNumberToken("20"),
-                getRightUnaryOperatorToken("%"),
-                ESemicolonToken,
-                //
-                getNumberToken("1000"),
-                getBinaryOperatorToken("*"),
-                getNumberToken("20"),
-                getRightUnaryOperatorToken("%"),
-                ESemicolonToken,
-                getNumberToken("1000"),
-                getBinaryOperatorToken("/"),
-                getNumberToken("20"),
-                getRightUnaryOperatorToken("%"),
-                ESemicolonToken,
-                //
-                getLeftUnaryOperatorToken("-"),
-                EOpenBracketToken,
-                getNumberToken("10"),
-                getBinaryOperatorToken("+"),
-                getNumberToken("20"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                getLeftUnaryOperatorToken("+"),
-                EOpenBracketToken,
-                getNumberToken("3"),
-                getBinaryOperatorToken("*"),
-                EOpenBracketToken,
-                getNumberToken("2"),
-                getBinaryOperatorToken("+"),
-                getNumberToken("3"),
-                ECloseBracketToken,
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("someFun", true, options),
-                EOpenBracketToken,
-                ECloseBracketToken,
-                ESemicolonToken,
-                getFunctionToken("someFun", options = options),
-                EOpenBracketToken,
-                getNumberToken("10"),
-                ESemicolonToken,
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("30"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getNumberToken("10"),
-                ESemicolonToken,
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("30"),
-                ESemicolonToken,
-                //
-                getNumberToken("10"),
-                getBinaryOperatorToken("+"),
-                getNumberToken("20"),
-                ESemicolonToken,
-                //
-                getFunctionToken("someFun", options = options),
-                EOpenBracketToken,
-                getNumberToken("10"),
-                ESemicolonToken,
-                getNumberToken("20"),
-                ESemicolonToken,
-                getNumberToken("30"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("if"),
-                EOpenBracketToken,
-                getBooleanToken(true),
-                ESemicolonToken,
-                getNumberToken("1"),
-                ESemicolonToken,
-                getNumberToken("2"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("a"),
-                ESemicolonToken,
-                getNumberToken("2"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("b"),
-                ESemicolonToken,
-                getNumberToken("3"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("a"),
-                ECloseBracketToken,
-                getBinaryOperatorToken("+"),
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("b"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("a"),
-                ESemicolonToken,
-                getNumberToken("5"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                getFunctionToken("var"),
-                EOpenBracketToken,
-                getStringToken("a"),
-                ESemicolonToken,
-                getStringToken("different type"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("fun"),
-                EOpenBracketToken,
-                getStringToken("sum"),
-                ESemicolonToken,
-                getStringToken("a"),
-                ESemicolonToken,
-                getStringToken("b"),
-                ESemicolonToken,
-                getStatementToken(
-                    listOf(
-                        getFunctionToken("var"),
-                        EOpenBracketToken,
-                        getStringToken("a"),
-                        ECloseBracketToken,
-                        getBinaryOperatorToken("+"),
-                        getFunctionToken("var"),
-                        EOpenBracketToken,
-                        getStringToken("b"),
-                        ECloseBracketToken,
-                    ),
-                ),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("fun"),
-                EOpenBracketToken,
-                getStringToken("sum"),
-                ESemicolonToken,
-                getNumberToken("2"),
-                ESemicolonToken,
-                getNumberToken("3"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("fun"),
-                EOpenBracketToken,
-                getStringToken("double and pow 2"),
-                ESemicolonToken,
-                getStringToken("a"),
-                ESemicolonToken,
-                getStatementToken(
-                    listOf(
-                        getFunctionToken("fun"),
-                        EOpenBracketToken,
-                        getStringToken("double"),
-                        ESemicolonToken,
-                        getStringToken("a"),
-                        ESemicolonToken,
-                        getStatementToken(
-                            listOf(
-                                getFunctionToken("var"),
-                                EOpenBracketToken,
-                                getStringToken("a"),
-                                ECloseBracketToken,
-                                getBinaryOperatorToken("*"),
-                                getNumberToken("2"),
-                            ),
-                        ),
-                        ECloseBracketToken,
-                        ESemicolonToken,
-                        //
-                        getFunctionToken("var"),
-                        EOpenBracketToken,
-                        getStringToken("a"),
-                        ESemicolonToken,
-                        getFunctionToken("fun"),
-                        EOpenBracketToken,
-                        getStringToken("double"),
-                        ESemicolonToken,
-                        getFunctionToken("var"),
-                        EOpenBracketToken,
-                        getStringToken("a"),
-                        ECloseBracketToken,
-                        ECloseBracketToken,
-                        ECloseBracketToken,
-                        ESemicolonToken,
-                        //
-                        getFunctionToken("fun"),
-                        EOpenBracketToken,
-                        getStringToken("pow2"),
-                        ESemicolonToken,
-                        getStringToken("a"),
-                        ESemicolonToken,
-                        getStatementToken(
-                            listOf(
-                                getFunctionToken("var"),
-                                EOpenBracketToken,
-                                getStringToken("a"),
-                                ECloseBracketToken,
-                                getBinaryOperatorToken("**"),
-                                getNumberToken("2"),
-                            ),
-                        ),
-                        ECloseBracketToken,
-                        ESemicolonToken,
-                        //
-                        getFunctionToken("fun"),
-                        EOpenBracketToken,
-                        getStringToken("pow2"),
-                        ESemicolonToken,
-                        getFunctionToken("var"),
-                        EOpenBracketToken,
-                        getStringToken("a"),
-                        ECloseBracketToken,
-                        ECloseBracketToken,
-                    ),
-                ),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getFunctionToken("fun"),
-                EOpenBracketToken,
-                getStringToken("double and pow 2"),
-                ESemicolonToken,
-                getNumberToken("5"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                //
-                getNumberToken("10"),
-                getBinaryOperatorToken("+"),
-                getStringToken("2"),
-                ESemicolonToken,
-                //
-                getFunctionToken("Number"),
-                EOpenBracketToken,
-                getStringToken("10"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                getFunctionToken("String"),
-                EOpenBracketToken,
-                getNumberToken("10"),
-                ECloseBracketToken,
-                ESemicolonToken,
-                getFunctionToken("Boolean"),
-                EOpenBracketToken,
-                getNumberToken("1"),
-                ECloseBracketToken,
-            )
+        it("must remove trailing semicolon") {
+            expressionParser.parse("20;") shouldBe
+                listOf(
+                    getNumberToken("20"),
+                )
+        }
     }
 })

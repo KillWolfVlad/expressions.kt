@@ -42,8 +42,14 @@ class ExpressionParser internal constructor(
         var isStringEscape: Boolean = false,
         // brackets
         val bracketsCountStack: ArrayDeque<Int> = ArrayDeque(listOf(0)),
-        val curlyBracketsCountStack: ArrayDeque<Int> = ArrayDeque(listOf(0)),
+        var curlyBracketsCount: Int = 0,
     )
+
+    private enum class ParsingResult {
+        NEXT_CHAR,
+        NEXT_PARSER,
+        RESTART_PARSERS,
+    }
 
     companion object {
         private val context = ExpressionParser::class.simpleName!!
@@ -168,7 +174,7 @@ class ExpressionParser internal constructor(
     }
 
     private inline fun validateIdentifiers(identifiers: List<String>) {
-        val forbiddenChars =
+        val reservedChars =
             EReservedChar.entries
                 .map { it.value }
                 .filter { it !in DIGITS }
@@ -186,11 +192,15 @@ class ExpressionParser internal constructor(
             }
 
             if (DIGITS.any { digit -> identifier.startsWith(digit) }) {
-                throw EException(context, "identifier $identifier can't start from digit!")
+                throw EException(context, "identifier $identifier can't starts with digit!")
             }
 
-            if (identifier.any { char -> char in forbiddenChars || char.isWhitespace() }) {
-                throw EException(context, "identifier $identifier can't contains forbidden char!")
+            if (identifier.any { char -> char in reservedChars }) {
+                throw EException(context, "identifier $identifier can't contains reserved char!")
+            }
+
+            if (identifier.any { char -> char.isWhitespace() }) {
+                throw EException(context, "identifier $identifier can't contains whitespace!")
             }
         }
     }
@@ -204,7 +214,7 @@ class ExpressionParser internal constructor(
             throw EException(context, "string without closing quotation mark!")
         }
 
-        if (curlyBracketsCountStack.size != 1) {
+        if (curlyBracketsCount != 0) {
             throw EException(context, "wrong number of curly brackets!")
         }
 
@@ -216,21 +226,55 @@ class ExpressionParser internal constructor(
 
     private inline fun ParsingContext.parseChar(char: Char) {
         while (true) {
-            tryParseString(char) ?: return
-            tryParseComment(char) ?: return
-            tryParseSingleCharToken(char) ?: return
-            tryParseStatement(char) ?: return
-            tryParseNumber(char) ?: return
-            tryParseWhitespace(char) ?: return
-            tryParseIdentifier(char) ?: continue
+            when (tryParseString(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
 
-            break
+            when (tryParseComment(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            when (tryParseSingleCharToken(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            when (tryParseStatement(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            when (tryParseNumber(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            when (tryParseWhitespace(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            when (tryParseIdentifier(char)) {
+                ParsingResult.NEXT_CHAR -> return
+                ParsingResult.NEXT_PARSER -> Unit
+                ParsingResult.RESTART_PARSERS -> continue
+            }
+
+            return
         }
     }
 
-    private inline fun ParsingContext.tryParseString(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseString(char: Char): ParsingResult {
         if (isComment) {
-            return Unit
+            return ParsingResult.NEXT_PARSER
         }
 
         if (char == EReservedChar.QUOTATION_MARK.value) {
@@ -249,7 +293,7 @@ class ExpressionParser internal constructor(
                 currentTokenSymbol = options.stringConstructor
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
         if (isCurrentTokenString()) {
@@ -278,33 +322,33 @@ class ExpressionParser internal constructor(
                 }
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseComment(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseComment(char: Char): ParsingResult {
         if (isComment) {
             if (char == LF) {
                 isComment = false
 
-                return Unit
+                return ParsingResult.NEXT_PARSER
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         } else if (char == EReservedChar.NUMBER_SIGN.value) {
             addCurrentToken()
 
             isComment = true
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseSingleCharToken(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseSingleCharToken(char: Char): ParsingResult {
         if (char in SINGLE_CHAR_TOKENS_MAP) {
             addCurrentToken()
 
@@ -328,13 +372,13 @@ class ExpressionParser internal constructor(
                 isExpressionStart = true
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseStatement(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseStatement(char: Char): ParsingResult {
         if (char == EReservedChar.LEFT_CURLY_BRACKET.value) {
             addCurrentToken()
 
@@ -344,13 +388,14 @@ class ExpressionParser internal constructor(
 
             tokensStack.addFirst(mutableListOf())
             bracketsCountStack.addFirst(0)
-            curlyBracketsCountStack.addFirst(0)
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
         if (char == EReservedChar.RIGHT_CURLY_BRACKET.value) {
-            if (curlyBracketsCountStack.size == 1) {
+            curlyBracketsCount--
+
+            if (curlyBracketsCount < 0) {
                 throw EException(context, "wrong number of curly brackets!")
             }
 
@@ -361,19 +406,16 @@ class ExpressionParser internal constructor(
             currentTokenSymbol = options.statementConstructor
 
             bracketsCountStack.removeFirst()
-            curlyBracketsCountStack.removeFirst()
-
-            curlyBracketsCount--
 
             addCurrentToken()
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseNumber(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseNumber(char: Char): ParsingResult {
         if (char in DIGITS || char == EReservedChar.COMMA.value || char == EReservedChar.POINT.value) {
             val actualChar = if (char == EReservedChar.COMMA.value) EReservedChar.POINT.value else char
 
@@ -389,7 +431,7 @@ class ExpressionParser internal constructor(
                 currentTokenValue.append(actualChar)
             } else {
                 if (currentTokenValue.isNotEmpty()) {
-                    return Unit
+                    return ParsingResult.NEXT_PARSER
                 }
 
                 addCurrentToken()
@@ -399,13 +441,13 @@ class ExpressionParser internal constructor(
                 currentTokenSymbol = options.numberConstructor
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseWhitespace(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseWhitespace(char: Char): ParsingResult {
         if (char.isWhitespace()) {
             addCurrentToken()
 
@@ -425,13 +467,13 @@ class ExpressionParser internal constructor(
                 isExpressionStart = true
             }
 
-            return null
+            return ParsingResult.NEXT_CHAR
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
-    private inline fun ParsingContext.tryParseIdentifier(char: Char): Unit? {
+    private inline fun ParsingContext.tryParseIdentifier(char: Char): ParsingResult {
         if (currentTokenType != null && currentTokenType !in TOKEN_TYPES_WITH_IDENTIFIER) {
             addCurrentToken()
         }
@@ -444,16 +486,14 @@ class ExpressionParser internal constructor(
             currentTokenType = findResult.first
             currentTokenSymbol = findResult.second
         } else if (currentTokenType != null) {
-            currentTokenValue.let { currentTokenValue ->
-                currentTokenValue.deleteCharAt(currentTokenValue.length - 1)
-            }
+            currentTokenValue.deleteCharAt(currentTokenValue.length - 1)
 
             addCurrentToken()
 
-            return null
+            return ParsingResult.RESTART_PARSERS
         }
 
-        return Unit
+        return ParsingResult.NEXT_PARSER
     }
 
     private inline fun ParsingContext.findTokenTypeAndSymbol(identifier: String): Pair<KClass<out EToken>, ESymbol>? {
@@ -631,12 +671,6 @@ class ExpressionParser internal constructor(
         get() = bracketsCountStack.first()
         set(value) {
             bracketsCountStack.set(0, value)
-        }
-
-    private inline var ParsingContext.curlyBracketsCount
-        get() = curlyBracketsCountStack.first()
-        set(value) {
-            curlyBracketsCountStack.set(0, value)
         }
 
     private inline fun ParsingContext.isCurrentTokenNumber(): Boolean =

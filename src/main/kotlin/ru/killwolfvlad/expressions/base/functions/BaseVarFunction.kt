@@ -32,24 +32,24 @@ open class BaseVarFunction : EFunction {
                 when (arguments.size) {
                     1 ->
                         {
-                            val variablePointer =
+                            val variableRef =
                                 memory.variables[key.value] ?: throw EException(
                                     identifier,
                                     "variable with name ${key.value} is not defined!",
                                 )
 
-                            variablePointer.value
+                            variableRef.value
                         }
 
                     2 -> {
-                        val variablePointer = memory.variables[key.value]
+                        val variableRef = memory.variables[key.value]
 
-                        if (variablePointer != null) {
-                            if (variablePointer.value::class != arguments[1]::class) {
+                        if (variableRef != null) {
+                            if (variableRef.value::class != arguments[1]::class) {
                                 throw EException(identifier, "can't reassign variable with different type!")
                             }
 
-                            variablePointer.value = arguments[1]
+                            variableRef.value = arguments[1]
                         } else {
                             memory.variables[key.value] = BaseVariableRef(arguments[1])
                         }

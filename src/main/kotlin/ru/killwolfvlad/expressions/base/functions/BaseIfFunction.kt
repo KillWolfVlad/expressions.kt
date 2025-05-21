@@ -21,7 +21,10 @@ open class BaseIfFunction : EFunction {
         arguments: List<EInstance>,
     ): EInstance =
         baseValidateArgumentsCount(identifier, arguments, setOf(3)) {
-            baseValidateArgumentType<BaseBooleanInstance, EInstance>(identifier, arguments[0]) { condition ->
+            baseValidateArgumentType<BaseBooleanInstance, EInstance>(
+                identifier,
+                arguments[0].expand(expressionExecutor, memory),
+            ) { condition ->
                 if (condition.value) {
                     arguments[1].expand(expressionExecutor, memory)
                 } else {

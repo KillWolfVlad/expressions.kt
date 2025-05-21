@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
@@ -6,14 +6,9 @@ import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 
 class BaseStringInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
-
-    it("\"ok\" = \"ok\"") {
-        expressionExecutor.execute("\"ok\"").value shouldBe "ok"
-    }
 
     describe("BasePlusBinaryOperator") {
         it("\"a\" + \"b\" = \"ab\"") {
@@ -117,20 +112,9 @@ class BaseStringInstanceTest : DescribeSpec({
         }
 
         it("must throw unsupported right unary operator exception") {
-            class CustomRightUnaryOperator : ERightUnaryOperator {
-                override val identifier = "$"
-            }
-
-            val customExpressionExecutor =
-                ExpressionExecutor(
-                    buildBaseExpressionOptions().copy(
-                        rightUnaryOperators = listOf(CustomRightUnaryOperator()),
-                    ),
-                )
-
             shouldThrowExactly<EException> {
-                customExpressionExecutor.execute("\"a\"$")
-            }.message shouldBe "BaseStringInstance: unsupported right unary operator type CustomRightUnaryOperator!"
+                expressionExecutor.execute("\"a\"%")
+            }.message shouldBe "BaseStringInstance: unsupported right unary operator type BasePercentRightUnaryOperator!"
         }
     }
 })

@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
@@ -11,14 +11,6 @@ import java.math.BigDecimal
 
 class BaseNumberInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
-
-    it("20 = 20") {
-        expressionExecutor.execute("20").value shouldBe BigDecimal("20.00")
-    }
-
-    it("20.25 = 20.25") {
-        expressionExecutor.execute("20.25").value shouldBe BigDecimal("20.25")
-    }
 
     describe("BasePlusBinaryOperator") {
         it("20 + 30 = 50") {
@@ -65,22 +57,24 @@ class BaseNumberInstanceTest : DescribeSpec({
             expressionExecutor.execute("2 ** 3").value shouldBe BigDecimal("8.00")
         }
 
-        it("2.25 ** 3.33") {
-            shouldThrowExactly<EException> {
-                expressionExecutor.execute("2.25 ** 3.33")
-            }.message shouldBe "BaseNumberInstance: pow must be integer!"
+        it("2.25 ** 3 = 8") {
+            expressionExecutor.execute("2.25 ** 3").value shouldBe BigDecimal("11.39")
         }
 
         it("-2 ** 3 = -8") {
             expressionExecutor.execute("-2 ** 3").value shouldBe BigDecimal("-8.00")
         }
 
-        it("2 ** -3 = -8") {
-            expressionExecutor.execute("-2 ** 3").value shouldBe BigDecimal("-8.00")
+        it("2.25 ** 3.33") {
+            shouldThrowExactly<EException> {
+                expressionExecutor.execute("2.25 ** 3.33")
+            }.message shouldBe "BaseNumberInstance: pow must be integer!"
         }
 
-        it("2 ** 3 ** 2 = 512") {
-            expressionExecutor.execute("2 ** 3 ** 2").value shouldBe BigDecimal("512.00")
+        it("2 ** (-3)") {
+            shouldThrowExactly<ArithmeticException> {
+                expressionExecutor.execute("2 ** (-3)")
+            }
         }
     }
 

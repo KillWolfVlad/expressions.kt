@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -9,7 +9,7 @@ import java.math.BigDecimal
 class BasePercentInstanceTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
-    it("20% = 0.20") {
+    it("20% = 0.2000") {
         expressionExecutor.execute("20%").value shouldBe BigDecimal("0.2000")
     }
 
@@ -44,11 +44,11 @@ class BasePercentInstanceTest : DescribeSpec({
             expressionExecutor.execute("1000 - 20%").value shouldBe BigDecimal("800.00")
         }
 
-        it("1000 - 20.25% = 800") {
+        it("1000 - 20.25% = 797.50") {
             expressionExecutor.execute("1000 - 20.25%").value shouldBe BigDecimal("797.50")
         }
 
-        it("20% - 1000 = 999.80") {
+        it("20% - 1000 = -999.80") {
             expressionExecutor.execute("20% - 1000").value shouldBe BigDecimal("-999.80")
         }
 

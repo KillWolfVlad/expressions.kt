@@ -31,8 +31,8 @@ import kotlin.plus
  */
 open class BaseNumberInstance(
     override val value: BigDecimal,
-    private val scale: Int,
-    private val roundingMode: RoundingMode,
+    protected val scale: Int,
+    protected val roundingMode: RoundingMode,
 ) : EInstance {
     companion object {
         private val context = BaseNumberInstance::class.simpleName!!

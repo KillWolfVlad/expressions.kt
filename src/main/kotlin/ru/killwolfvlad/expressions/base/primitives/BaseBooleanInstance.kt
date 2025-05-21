@@ -32,9 +32,9 @@ open class BaseBooleanInstance(
     ): EInstance =
         baseValidateArgumentType<BaseBooleanInstance, EInstance>(context, other) {
             when (operator) {
-                is BaseOrBinaryOperator -> BaseBooleanInstance(value || it.value)
-
                 is BaseAndBinaryOperator -> BaseBooleanInstance(value && it.value)
+
+                is BaseOrBinaryOperator -> BaseBooleanInstance(value || it.value)
 
                 is BaseEqualBinaryOperator -> BaseBooleanInstance(value == it.value)
 

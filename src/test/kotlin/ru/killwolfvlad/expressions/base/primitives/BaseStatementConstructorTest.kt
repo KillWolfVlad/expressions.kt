@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
@@ -43,6 +43,12 @@ class BaseStatementConstructorTest : DescribeSpec({
     }
 
     describe("exceptions") {
+        it("must throw wrong count of arguments exception") {
+            shouldThrowExactly<EException> {
+                expressionExecutor.execute("Statement(30; 20)")
+            }.message shouldBe "Statement: arguments count must be 1!"
+        }
+
         it("must throw unsupported argument type exception") {
             shouldThrowExactly<EException> {
                 expressionExecutor.execute("Statement(30)")

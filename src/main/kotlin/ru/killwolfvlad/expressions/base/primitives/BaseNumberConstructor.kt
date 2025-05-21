@@ -13,8 +13,8 @@ import java.math.RoundingMode
  * Base number class
  */
 open class BaseNumberConstructor(
-    private val scale: Int = 2,
-    private val roundingMode: RoundingMode = RoundingMode.HALF_EVEN,
+    protected val scale: Int = 2,
+    protected val roundingMode: RoundingMode = RoundingMode.HALF_EVEN,
 ) : ENumberConstructor {
     override val identifier = "Number"
 
@@ -36,7 +36,7 @@ open class BaseNumberConstructor(
                 when (argument) {
                     is BaseNumberInstance -> argument.value
 
-                    is BaseStringInstance -> BigDecimal((argument).value)
+                    is BaseStringInstance -> BigDecimal(argument.value)
 
                     is BaseBooleanInstance -> BigDecimal(if (argument.value) 1 else 0)
 

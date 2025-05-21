@@ -1,4 +1,4 @@
-package ru.killwolfvlad.expressions.base.classes
+package ru.killwolfvlad.expressions.base.primitives
 
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.DescribeSpec
@@ -11,8 +11,26 @@ import java.math.BigDecimal
 class BaseNumberConstructorTest : DescribeSpec({
     val expressionExecutor = ExpressionExecutor(buildBaseExpressionOptions())
 
-    it("must create instance from string") {
-        expressionExecutor.execute("20").value shouldBe BigDecimal("20.00")
+    describe("must create instance from string") {
+        it("20") {
+            expressionExecutor.execute("20").value shouldBe BigDecimal("20.00")
+        }
+
+        it("20.25") {
+            expressionExecutor.execute("20.25").value shouldBe BigDecimal("20.25")
+        }
+
+        it(".20") {
+            expressionExecutor.execute(".20").value shouldBe BigDecimal("0.20")
+        }
+
+        it("20.") {
+            expressionExecutor.execute("20.").value shouldBe BigDecimal("20.00")
+        }
+
+        it("20.987654321") {
+            expressionExecutor.execute("20.987654321").value shouldBe BigDecimal("20.99")
+        }
     }
 
     it("must create instance from BaseNumberInstance") {

@@ -113,6 +113,8 @@ class ExpressionExecutor(
                         } else {
                             throw EException(context, "missing function name!")
                         }
+                    } else {
+                        throw EException(context, "unexpected operator ${operators.first()}!")
                     }
                 }
 

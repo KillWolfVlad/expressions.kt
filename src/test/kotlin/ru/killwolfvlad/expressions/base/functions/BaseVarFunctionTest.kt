@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import ru.killwolfvlad.expressions.base.buildBaseExpressionOptions
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import java.math.BigDecimal
 
 class BaseVarFunctionTest : DescribeSpec({
@@ -103,20 +102,12 @@ class BaseVarFunctionTest : DescribeSpec({
                               var("d"; 3)
                             })
 
+                            fun("fun1")
+
                             var("d")
                             """.trimIndent(),
                         ).value
                 }.message shouldBe "var: variable with name d is not defined!"
-            }
-        }
-
-        it("must throw exception when memory is not BaseMemory") {
-            class CustomMemory : EMemory {
-                override fun copy(): EMemory = throw NotImplementedError()
-            }
-
-            shouldThrowExactly<ClassCastException> {
-                expressionExecutor.execute("var(\"a\"; 1)", CustomMemory())
             }
         }
 
