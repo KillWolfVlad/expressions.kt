@@ -9,10 +9,12 @@ import ru.killwolfvlad.expressions.core.symbols.ENumberConstructor
 import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
 import ru.killwolfvlad.expressions.core.symbols.EStatementConstructor
 import ru.killwolfvlad.expressions.core.symbols.EStringConstructor
+import kotlin.js.JsExport
 
 /**
  * Expression options
  */
+@JsExport
 data class EOptions(
     val binaryOperators: List<EBinaryOperator>,
     val leftUnaryOperators: List<ELeftUnaryOperator>,

@@ -1,7 +1,7 @@
 plugins {
     `maven-publish`
 
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinter)
 }
@@ -13,10 +13,6 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation(libs.bundles.kotest)
-}
-
 tasks.check {
     dependsOn("installKotlinterPrePushHook")
 }
@@ -26,6 +22,34 @@ tasks.withType<Test>().configureEach {
 }
 
 kotlin {
+    jvm {}
+
+    js(IR) {
+        binaries.library()
+        useCommonJs()
+        generateTypeScriptDefinitions()
+
+//        browser {
+//            //  binaries.library()
+//        }
+        nodejs {}
+    }
+
+    sourceSets {
+        jsMain {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+                // implementation(npm("decimal.js", "10.5.0"))
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.bundles.kotest)
+            }
+        }
+    }
+
     jvmToolchain(21)
 
     compilerOptions {
@@ -34,30 +58,30 @@ kotlin {
     }
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
+// java {
+//    withJavadocJar()
+//    withSourcesJar()
+// }
 
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/KillWolfVlad/expressions.kt")
-
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                password = providers.gradleProperty("gpr.key").orNull
-            }
-        }
-    }
-
-    publications {
-        register<MavenPublication>("gpr") {
-            from(components["java"])
-        }
-    }
-}
+// publishing {
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/KillWolfVlad/expressions.kt")
+//
+//            credentials {
+//                username = providers.gradleProperty("gpr.user").orNull
+//                password = providers.gradleProperty("gpr.key").orNull
+//            }
+//        }
+//    }
+//
+//    publications {
+//        register<MavenPublication>("gpr") {
+//            from(components["java"])
+//        }
+//    }
+// }
 
 detekt {
     buildUponDefaultConfig = true

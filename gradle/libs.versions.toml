@@ -8,7 +8,7 @@ kotlinter = "5.0.2" # https://github.com/jeremymailen/kotlinter-gradle
 kotest = "6.0.0.M4" # https://github.com/kotest/kotest
 
 [plugins]
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 

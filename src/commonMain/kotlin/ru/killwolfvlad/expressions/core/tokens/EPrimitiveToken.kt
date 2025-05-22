@@ -15,10 +15,10 @@ data class EPrimitiveToken<T>(
     /**
      * Primitive constructor
      */
-    val constructor: EPrimitiveConstructor<T>,
+    val primitiveConstructor: EPrimitiveConstructor<T>,
 ) : EToken {
     override fun toString() =
-        when (constructor) {
+        when (primitiveConstructor) {
             is EStatementConstructor -> "${EReservedChar.LEFT_CURLY_BRACKET.value}...${EReservedChar.RIGHT_CURLY_BRACKET.value}"
             else -> value.toString()
         }

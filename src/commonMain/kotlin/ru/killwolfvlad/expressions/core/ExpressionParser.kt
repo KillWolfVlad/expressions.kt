@@ -21,11 +21,13 @@ import ru.killwolfvlad.expressions.core.tokens.EPrimitiveToken
 import ru.killwolfvlad.expressions.core.tokens.ERightUnaryOperatorToken
 import ru.killwolfvlad.expressions.core.tokens.ESemicolonToken
 import ru.killwolfvlad.expressions.core.tokens.EToken
+import kotlin.js.JsExport
 import kotlin.reflect.KClass
 
 /**
  * Expression parser
  */
+@JsExport
 class ExpressionParser internal constructor(
     private val options: EOptions,
 ) {
@@ -486,7 +488,7 @@ class ExpressionParser internal constructor(
             currentTokenType = findResult.first
             currentTokenSymbol = findResult.second
         } else if (currentTokenType != null) {
-            currentTokenValue.deleteCharAt(currentTokenValue.length - 1)
+            currentTokenValue.deleteAt(currentTokenValue.length - 1)
 
             addCurrentToken()
 

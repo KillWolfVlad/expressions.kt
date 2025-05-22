@@ -120,7 +120,7 @@ class ExpressionExecutor(
 
                 is EPrimitiveToken<*> ->
                     instances.addFirst(
-                        (token.constructor as EPrimitiveConstructor<Any>).createInstance(this, memory, token.value as Any),
+                        (token.primitiveConstructor as EPrimitiveConstructor<Any>).createInstance(this, memory, token.value as Any),
                     )
 
                 is EBinaryOperatorToken -> {

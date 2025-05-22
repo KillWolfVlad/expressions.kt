@@ -6,7 +6,7 @@ import java.math.RoundingMode
 /**
  * Base percent instance
  */
-open class BasePercentInstance(
+actual open class BasePercentInstance(
     value: BigDecimal,
     scale: Int,
     roundingMode: RoundingMode,

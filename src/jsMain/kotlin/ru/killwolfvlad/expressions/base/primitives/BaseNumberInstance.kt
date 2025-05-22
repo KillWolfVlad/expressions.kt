@@ -22,23 +22,21 @@ import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
-import java.math.BigDecimal
-import java.math.RoundingMode
-import kotlin.plus
+import kotlin.math.pow
 
 /**
  * Base number instance
  */
-open class BaseNumberInstance(
-    override val value: BigDecimal,
-    protected val scale: Int,
-    protected val roundingMode: RoundingMode,
+actual open class BaseNumberInstance(
+    actual override val value: Any,
 ) : EInstance {
     companion object {
         private val context = BaseNumberInstance::class.simpleName!!
     }
 
-    override suspend fun applyBinaryOperator(
+    inline val actualValue get() = value as Double
+
+    actual override suspend fun applyBinaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         other: EInstance,
@@ -48,77 +46,51 @@ open class BaseNumberInstance(
             if (it is BasePercentInstance) {
                 when (operator) {
                     is BasePlusBinaryOperator -> return BaseNumberInstance(
-                        value
+                        actualValue
                             .plus(
-                                value.times(it.value).setScale(scale, roundingMode),
-                            ).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
+                                actualValue.times(it.actualValue),
+                            ),
                     )
 
                     is BaseMinusBinaryOperator -> return BaseNumberInstance(
-                        value
+                        actualValue
                             .minus(
-                                value.times(it.value).setScale(scale, roundingMode),
-                            ).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
+                                actualValue.times(it.actualValue),
+                            ),
                     )
                 }
             }
 
             when (operator) {
                 is BasePlusBinaryOperator ->
-                    BaseNumberInstance(
-                        value.plus(it.value).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
-                    )
+                    BaseNumberInstance(actualValue.plus(it.actualValue))
 
                 is BaseMinusBinaryOperator ->
-                    BaseNumberInstance(
-                        value.minus(it.value).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
-                    )
+                    BaseNumberInstance(actualValue.minus(it.actualValue))
 
                 is BaseMultiplyBinaryOperator ->
-                    BaseNumberInstance(
-                        value.times(it.value).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
-                    )
+                    BaseNumberInstance(actualValue.times(it.actualValue))
 
                 is BaseDivideBinaryOperator ->
-                    BaseNumberInstance(
-                        value.divide(it.value, scale, roundingMode),
-                        scale,
-                        roundingMode,
-                    )
+                    BaseNumberInstance(actualValue.div(it.actualValue))
 
                 is BaseExponentiationBinaryOperator -> {
-                    if (it.value.stripTrailingZeros().scale() > 0) {
-                        throw EException(context, "pow must be integer!")
-                    }
-
                     BaseNumberInstance(
-                        value.pow(it.value.toInt()).setScale(scale, roundingMode),
-                        scale,
-                        roundingMode,
+                        actualValue.pow(it.actualValue),
                     )
                 }
 
-                is BaseGreaterBinaryOperator -> BaseBooleanInstance(value > it.value)
+                is BaseGreaterBinaryOperator -> BaseBooleanInstance(actualValue > it.actualValue)
 
-                is BaseGreaterOrEqualBinaryOperator -> BaseBooleanInstance(value >= it.value)
+                is BaseGreaterOrEqualBinaryOperator -> BaseBooleanInstance(actualValue >= it.actualValue)
 
-                is BaseLessBinaryOperator -> BaseBooleanInstance(value < it.value)
+                is BaseLessBinaryOperator -> BaseBooleanInstance(actualValue < it.actualValue)
 
-                is BaseLessOrEqualBinaryOperator -> BaseBooleanInstance(value <= it.value)
+                is BaseLessOrEqualBinaryOperator -> BaseBooleanInstance(actualValue <= it.actualValue)
 
-                is BaseEqualBinaryOperator -> BaseBooleanInstance(value.compareTo(it.value) == 0)
+                is BaseEqualBinaryOperator -> BaseBooleanInstance(actualValue.compareTo(it.actualValue) == 0)
 
-                is BaseNotEqualBinaryOperator -> BaseBooleanInstance(value.compareTo(it.value) != 0)
+                is BaseNotEqualBinaryOperator -> BaseBooleanInstance(actualValue.compareTo(it.actualValue) != 0)
 
                 else -> throw EException(
                     context,
@@ -127,15 +99,15 @@ open class BaseNumberInstance(
             }
         }
 
-    override suspend fun applyLeftUnaryOperator(
+    actual override suspend fun applyLeftUnaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ELeftUnaryOperator,
     ): EInstance =
         when (operator) {
-            is BasePlusLeftUnaryOperator -> BaseNumberInstance(value.plus(), scale, roundingMode)
+            is BasePlusLeftUnaryOperator -> BaseNumberInstance(actualValue.unaryPlus())
 
-            is BaseMinusLeftUnaryOperator -> BaseNumberInstance(value.negate(), scale, roundingMode)
+            is BaseMinusLeftUnaryOperator -> BaseNumberInstance(actualValue.unaryMinus())
 
             else -> throw EException(
                 context,
@@ -143,23 +115,14 @@ open class BaseNumberInstance(
             )
         }
 
-    override suspend fun applyRightUnaryOperator(
+    actual override suspend fun applyRightUnaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ERightUnaryOperator,
     ): EInstance =
         when (operator) {
             is BasePercentRightUnaryOperator ->
-                BasePercentInstance(
-                    value
-                        .divide(
-                            BigDecimal(100),
-                            scale * 2,
-                            roundingMode,
-                        ),
-                    scale,
-                    roundingMode,
-                )
+                BasePercentInstance(actualValue.div(100.toDouble()))
 
             else -> throw EException(
                 context,

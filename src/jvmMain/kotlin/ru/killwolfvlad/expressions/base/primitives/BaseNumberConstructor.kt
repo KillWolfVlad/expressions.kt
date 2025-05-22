@@ -5,22 +5,28 @@ import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
-import ru.killwolfvlad.expressions.core.symbols.EBooleanConstructor
+import ru.killwolfvlad.expressions.core.symbols.ENumberConstructor
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 /**
- * Base boolean class
+ * Base number class
  */
-open class BaseBooleanConstructor : EBooleanConstructor {
-    override val identifier = "Boolean"
+actual open class BaseNumberConstructor(
+    protected val scale: Int,
+    protected val roundingMode: RoundingMode,
+) : ENumberConstructor {
+    actual constructor() : this(2, RoundingMode.HALF_EVEN)
 
-    override suspend fun createInstance(
+    actual override val identifier = "Number"
+
+    actual override suspend fun createInstance(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
-        value: Boolean,
-    ): EInstance = BaseBooleanInstance(value)
+        value: String,
+    ): EInstance = createInstance(BigDecimal(value))
 
-    override suspend fun execute(
+    actual override suspend fun execute(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         arguments: List<EInstance>,
@@ -30,11 +36,11 @@ open class BaseBooleanConstructor : EBooleanConstructor {
 
             val value =
                 when (argument) {
-                    is BaseNumberInstance -> argument.value.compareTo(BigDecimal.ZERO) != 0
+                    is BaseNumberInstance -> argument.actualValue
 
-                    is BaseStringInstance -> argument.value.toBooleanStrict()
+                    is BaseStringInstance -> BigDecimal(argument.value)
 
-                    is BaseBooleanInstance -> argument.value
+                    is BaseBooleanInstance -> BigDecimal(if (argument.value) 1 else 0)
 
                     else -> throw EException(
                         identifier,
@@ -42,6 +48,9 @@ open class BaseBooleanConstructor : EBooleanConstructor {
                     )
                 }
 
-            return BaseBooleanInstance(value)
+            return createInstance(value)
         }
+
+    private inline fun createInstance(value: BigDecimal): EInstance =
+        BaseNumberInstance(value.setScale(scale, roundingMode), scale, roundingMode)
 }

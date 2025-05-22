@@ -30,10 +30,12 @@ import ru.killwolfvlad.expressions.core.symbols.EBooleanConstructor
 import ru.killwolfvlad.expressions.core.symbols.ENumberConstructor
 import ru.killwolfvlad.expressions.core.symbols.EStatementConstructor
 import ru.killwolfvlad.expressions.core.symbols.EStringConstructor
+import kotlin.js.JsExport
 
 /**
  * Build base expression options
  */
+@JsExport
 fun buildBaseExpressionOptions(
     numberConstructor: ENumberConstructor = BaseNumberConstructor(),
     stringConstructor: EStringConstructor = BaseStringConstructor(),
