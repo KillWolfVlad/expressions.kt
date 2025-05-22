@@ -1,21 +1,22 @@
 package ru.killwolfvlad.expressions.base.functions
 
-import ru.killwolfvlad.expressions.base.classes.BaseStringInstance
-import ru.killwolfvlad.expressions.base.memory.BaseFunctionCache
+import ru.killwolfvlad.expressions.base.memory.BaseFunctionRef
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
+import ru.killwolfvlad.expressions.base.memory.BaseVariableRef
+import ru.killwolfvlad.expressions.base.primitives.BaseStatementInstance
+import ru.killwolfvlad.expressions.base.primitives.BaseStringInstance
 import ru.killwolfvlad.expressions.base.validators.baseValidateArgumentType
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.exceptions.EException
-import ru.killwolfvlad.expressions.core.interfaces.EFunction
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
+import ru.killwolfvlad.expressions.core.symbols.EFunction
+import ru.killwolfvlad.expressions.core.tokens.EToken
 
 /**
  * Base fun function
  */
-class BaseFunFunction : EFunction {
-    override val description = "fun function"
-
+open class BaseFunFunction : EFunction {
     override val identifier = "fun"
 
     override suspend fun execute(
@@ -34,29 +35,27 @@ class BaseFunFunction : EFunction {
         }
 
         return baseValidateArgumentType<BaseStringInstance, EInstance>(identifier, arguments[0]) { functionName ->
-            val functionCache = memory.functions[functionName.value]
+            val functionRef = memory.functions[functionName.value]
 
-            if (functionCache != null) {
-                val functionMemory = (expressionExecutor.options.memoryFactory() as BaseMemory)
-
-                memory.functions.forEach { functionMemory.functions[it.key] = it.value }
+            if (functionRef != null) {
+                val functionMemory = functionRef.memory.copy()
 
                 arguments.subList(1, arguments.size).forEachIndexed { index, argument ->
-                    val nameByPosition = functionCache.arguments[index]
+                    val nameByPosition = functionRef.arguments[index]
 
                     if (nameByPosition != null) {
-                        functionMemory.variables[nameByPosition] = argument
+                        functionMemory.variables[nameByPosition] = BaseVariableRef(argument)
                     }
                 }
 
-                return expressionExecutor.execute(functionCache.tokens, functionMemory)
+                return expressionExecutor.execute(functionRef.tokens, functionMemory)
             } else {
                 if (arguments.size == 1) {
                     throw EException(identifier, "arguments count can't be 1!")
                 }
 
                 memory.functions[functionName.value] =
-                    BaseFunctionCache(
+                    BaseFunctionRef(
                         arguments =
                             arguments
                                 .subList(1, arguments.lastIndex)
@@ -69,14 +68,13 @@ class BaseFunFunction : EFunction {
                                     }
                                 }.toMap(),
                         tokens =
-                            expressionExecutor.parser.parse(
-                                baseValidateArgumentType<BaseStringInstance, String>(
-                                    identifier,
-                                    arguments[arguments.lastIndex],
-                                ) {
-                                    it.value
-                                },
-                            ),
+                            baseValidateArgumentType<BaseStatementInstance, List<EToken>>(
+                                identifier,
+                                arguments[arguments.lastIndex],
+                            ) {
+                                it.value
+                            },
+                        memory = memory,
                     )
 
                 return functionName

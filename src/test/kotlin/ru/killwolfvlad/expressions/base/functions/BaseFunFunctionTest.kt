@@ -26,11 +26,24 @@ class BaseFunFunctionTest : DescribeSpec({
         expressionExecutor
             .execute(
                 """
+                fun("pow"; "a"; "b"; {
+                  var("b") ** var("a")
+                })
+
+                fun("pow"; 2; 3)
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("9.00")
+    }
+
+    it("must skip arguments mapping if passed more arguments that defined") {
+        expressionExecutor
+            .execute(
+                """
                 fun("sum"; "a"; "b"; {
                   var("a") + var("b")
                 })
 
-                fun("sum"; 3; 4)
+                fun("sum"; 3; 4; 5)
                 """.trimIndent(),
             ).value shouldBe BigDecimal("7.00")
     }
@@ -50,6 +63,50 @@ class BaseFunFunctionTest : DescribeSpec({
                 fun("doubleAndPow2"; 5)
                 """.trimIndent(),
             ).value shouldBe BigDecimal("100.00")
+    }
+
+    it("must define and execute function in function") {
+        expressionExecutor
+            .execute(
+                """
+                fun("doubleAndPow2"; "a"; {
+                  fun("sum"; "a"; "b"; {
+                    var("a") + var("b")
+                  })
+
+                  fun("sum"; var("a"); var("a")) ** 2
+                })
+
+                fun("doubleAndPow2"; 5)
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("100.00")
+    }
+
+    it("must use captured variables and functions") {
+        expressionExecutor
+            .execute(
+                """
+                var("a"; 1)
+
+                fun("fun1"; {
+                  fun("fun2"; {
+                    fun("sum"; var("a") + 3; var("b") + 3)
+                  })
+
+                  var("a"; 5)
+
+                  fun("fun2")
+                })
+
+                var("b"; 2)
+
+                fun("sum"; "a"; "b"; {
+                  var("a") + var("b")
+                })
+
+                fun("fun1")
+                """.trimIndent(),
+            ).value shouldBe BigDecimal("13.00")
     }
 
     describe("exceptions") {
@@ -92,6 +149,29 @@ class BaseFunFunctionTest : DescribeSpec({
                     fun("sum"; "a"; 1)
                     """.trimIndent(),
                 )
+            }.message shouldBe "fun: argument type must be BaseStatementInstance!"
+        }
+
+        it("must throw exception when trying access to function from other scope") {
+            shouldThrowExactly<EException> {
+                expressionExecutor
+                    .execute(
+                        """
+                        fun("fun1"; {
+                          fun("sum"; 1; 2)
+                        })
+
+                        fun("fun2"; {
+                          fun("sum"; "a"; "b"; {
+                            var("a") + var("b")
+                          })
+
+                          fun("fun1")
+                        })
+
+                        fun("fun2")
+                        """.trimIndent(),
+                    )
             }.message shouldBe "fun: argument type must be BaseStringInstance!"
         }
     }

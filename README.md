@@ -5,13 +5,17 @@
   <br>
 </p>
 
-Embedded Expression Language for Kotlin.
+Embedded Extendable Expression Language for Kotlin.
+
+> Inspired by Excel, Clojure, JavaScript and Kotlin
 
 ## Features
 
 - Built-in primitives support: number, string and boolean with your own implementation under the hood (e.g. use double or BigDecimal for numbers)
-- Extend expressions with your own binary, left and right operators, classes and functions
+- Extend expressions with your own binary, left and right unary operators, types and functions
 - With memory you can add support of variables and user functions
+- Parse expression and work with tokens
+- Powerful interop with Kotlin and fully coroutines (suspend) support
 
 ## Install
 
@@ -55,11 +59,15 @@ You can find latest version in [GitHub Packages](https://github.com/KillWolfVlad
 
 ## Usage
 
-See [base](./src/main/kotlin/ru/killwolfvlad/expressions/base) and [base tests](./src/test/kotlin/ru/killwolfvlad/expressions/base) for usage example.
+- [Base example](./src/test/kotlin/ru/killwolfvlad/expressions/examples/BaseExampleTest.kt)
+- [Factorial example](./src/test/kotlin/ru/killwolfvlad/expressions/examples/FactorialExampleTest.kt)
+- [Fibonacci example](./src/test/kotlin/ru/killwolfvlad/expressions/examples/FibonacciExampleTest.kt)
+- [Eval example](./src/test/kotlin/ru/killwolfvlad/expressions/examples/EvalExampleTest.kt)
 
 ## Supported platforms
 
 - Java v21+ LTS
+- Kotlin v1.9+
 
 ## Maintainers
 

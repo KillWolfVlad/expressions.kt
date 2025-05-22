@@ -3,4 +3,9 @@ package ru.killwolfvlad.expressions.core.interfaces
 /**
  * Expression memory
  */
-interface EMemory
+interface EMemory {
+    /**
+     * Create copy of current memory
+     */
+    fun copy(): EMemory
+}

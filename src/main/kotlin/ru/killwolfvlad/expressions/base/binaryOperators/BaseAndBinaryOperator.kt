@@ -1,15 +1,16 @@
 package ru.killwolfvlad.expressions.base.binaryOperators
 
 import ru.killwolfvlad.expressions.base.enums.BaseBinaryOperatorPriority
-import ru.killwolfvlad.expressions.core.interfaces.EBinaryOperator
+import ru.killwolfvlad.expressions.core.enums.EAssociativity
+import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
 
 /**
  * Base and binary operator
  */
-class BaseAndBinaryOperator : EBinaryOperator {
-    override val description = "and binary operator"
-
+open class BaseAndBinaryOperator : EBinaryOperator {
     override val identifier = "&&"
 
     override val priority = BaseBinaryOperatorPriority.AND.value
+
+    override val associativity = EAssociativity.LR
 }

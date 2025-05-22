@@ -1,6 +1,5 @@
 package ru.killwolfvlad.expressions.base.memory
 
-import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
 
 /**
@@ -10,9 +9,15 @@ open class BaseMemory(
     /**
      * Variables storage
      */
-    val variables: MutableMap<String, EInstance> = mutableMapOf(),
+    val variables: MutableMap<String, BaseVariableRef> = mutableMapOf(),
     /**
      * Functions storage
      */
-    val functions: MutableMap<String, BaseFunctionCache> = mutableMapOf(),
-) : EMemory
+    val functions: MutableMap<String, BaseFunctionRef> = mutableMapOf(),
+) : EMemory {
+    override fun copy() =
+        BaseMemory(
+            variables.toMutableMap(),
+            functions.toMutableMap(),
+        )
+}
