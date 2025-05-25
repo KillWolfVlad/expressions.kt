@@ -26,13 +26,11 @@ kotlin {
 
     js(IR) {
         binaries.library()
-        useCommonJs()
+        useEsModules()
         generateTypeScriptDefinitions()
 
-//        browser {
-//            //  binaries.library()
-//        }
-        nodejs {}
+        browser {}
+        // nodejs {}
     }
 
     sourceSets {
