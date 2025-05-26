@@ -33,11 +33,23 @@ kotlin {
         // nodejs {}
     }
 
+    mingwX64 {
+        binaries.executable {
+            entryPoint = "ru.killwolfvlad.expressions.main"
+        }
+    }
+
     sourceSets {
         jsMain {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 // implementation(npm("decimal.js", "10.5.0"))
+            }
+        }
+
+        nativeMain {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
             }
         }
 
