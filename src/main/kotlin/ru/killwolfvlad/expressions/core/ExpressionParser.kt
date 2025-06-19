@@ -56,6 +56,7 @@ class ExpressionParser internal constructor(
 
         private const val CR = '\r'
         private const val LF = '\n'
+        private const val SPACE = ' '
 
         private val SINGLE_CHAR_TOKENS_MAP =
             mapOf(
@@ -448,6 +449,10 @@ class ExpressionParser internal constructor(
     }
 
     private inline fun ParsingContext.tryParseWhitespace(char: Char): ParsingResult {
+        if (char == SPACE && isCurrentTokenNumber()) {
+            return ParsingResult.NEXT_CHAR
+        }
+
         if (char.isWhitespace()) {
             addCurrentToken()
 

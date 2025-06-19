@@ -503,6 +503,14 @@ class ExpressionParserTest : DescribeSpec({
             expressionParser.parse("25,67") shouldBe listOf(getNumberToken("25.67"))
         }
 
+        it("must parse number with one space") {
+            expressionParser.parse("9 567,34") shouldBe listOf(getNumberToken("9567.34"))
+        }
+
+        it("must parse number with multiply spaces") {
+            expressionParser.parse("9 5 6 7 , 3 4") shouldBe listOf(getNumberToken("9567.34"))
+        }
+
         it("must parse number starts from point") {
             expressionParser.parse(".25") shouldBe listOf(getNumberToken(".25"))
         }

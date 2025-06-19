@@ -15,7 +15,10 @@ open class BaseMemory(
      */
     val functions: MutableMap<String, BaseFunctionRef> = mutableMapOf(),
 ) : EMemory {
-    override fun copy() =
+    /**
+     * Create copy of current memory
+     */
+    open fun copy() =
         BaseMemory(
             variables.toMutableMap(),
             functions.toMutableMap(),

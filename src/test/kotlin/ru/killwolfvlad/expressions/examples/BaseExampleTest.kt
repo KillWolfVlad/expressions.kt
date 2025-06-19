@@ -26,8 +26,9 @@ class BaseExampleTest : DescribeSpec({
                 10 # this is number, also everything after # is comment and ignored
                 10.25 # number can be with point
                 10,25 # you also can use comma instead of point
+                9 567,34 # number can contains spaces
                 """.trimIndent(),
-            ).value shouldBe BigDecimal("10.25")
+            ).value shouldBe BigDecimal("9567.34")
     }
 
     it("strings") {
