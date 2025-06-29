@@ -1,6 +1,6 @@
 [versions]
 # plugins
-kotlin = "2.1.21" # https://github.com/JetBrains/kotlin
+kotlin = "2.2.0" # https://github.com/JetBrains/kotlin
 detekt = "1.23.8" # https://github.com/detekt/detekt
 kotlinter = "5.1.1" # https://github.com/jeremymailen/kotlinter-gradle
 
