@@ -22,6 +22,7 @@ import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
+import ru.killwolfvlad.expressions.extra.rightUnaryOperators.ExtraKiloRightUnaryOperator
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.plus
@@ -157,6 +158,14 @@ open class BaseNumberInstance(
                             scale * 2,
                             roundingMode,
                         ),
+                    scale,
+                    roundingMode,
+                )
+
+            // TODO: add support to add dymacaly add support to new operators
+            is ExtraKiloRightUnaryOperator ->
+                BaseNumberInstance(
+                    value.times(BigDecimal(1000)).setScale(scale, roundingMode),
                     scale,
                     roundingMode,
                 )
