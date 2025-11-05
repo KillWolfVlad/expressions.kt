@@ -138,10 +138,10 @@ class ExpressionParser internal constructor(
             ).flatMap { it.first.map { key -> key to it.second } }.toMap()
     }
 
-    private val binaryOperatorsMap = options.binaryOperators.associateBy { it.identifier }
-    private val leftUnaryOperatorsMap = options.leftUnaryOperators.associateBy { it.identifier }
-    private val rightUnaryOperatorsMap = options.rightUnaryOperators.associateBy { it.identifier }
-    private val functionsMap = options.functions.associateBy { it.identifier }
+    private val binaryOperatorsMap = options.binaryOperators.associateByAllIdentifiers()
+    private val leftUnaryOperatorsMap = options.leftUnaryOperators.associateByAllIdentifiers()
+    private val rightUnaryOperatorsMap = options.rightUnaryOperators.associateByAllIdentifiers()
+    private val functionsMap = options.functions.associateByAllIdentifiers()
 
     init {
         validateOptions()
@@ -153,10 +153,10 @@ class ExpressionParser internal constructor(
     fun parse(expression: String): List<EToken> = ParsingContext().parse(expression)
 
     private inline fun validateOptions() {
-        val binaryOperatorIdentifiers = options.binaryOperators.map { it.identifier }
-        val leftUnaryOperatorIdentifiers = options.leftUnaryOperators.map { it.identifier }
-        val rightUnaryOperatorIdentifiers = options.rightUnaryOperators.map { it.identifier }
-        val functionIdentifiers = options.functions.map { it.identifier }
+        val binaryOperatorIdentifiers = options.binaryOperators.getAllIdentifiers()
+        val leftUnaryOperatorIdentifiers = options.leftUnaryOperators.getAllIdentifiers()
+        val rightUnaryOperatorIdentifiers = options.rightUnaryOperators.getAllIdentifiers()
+        val functionIdentifiers = options.functions.getAllIdentifiers()
 
         validateIdentifiersUniqueness(leftUnaryOperatorIdentifiers + functionIdentifiers)
         validateIdentifiersUniqueness(binaryOperatorIdentifiers + rightUnaryOperatorIdentifiers + functionIdentifiers)
@@ -551,19 +551,18 @@ class ExpressionParser internal constructor(
 
                     EPrimitiveToken::class ->
                         when (currentTokenSymbol) {
-                            options.numberConstructor ->
-                                {
-                                    val value = currentTokenValue.toString()
+                            options.numberConstructor -> {
+                                val value = currentTokenValue.toString()
 
-                                    if (value == ".") {
-                                        throw EException(context, "invalid number!")
-                                    }
-
-                                    EPrimitiveToken(
-                                        value,
-                                        currentTokenSymbol as ENumberConstructor,
-                                    )
+                                if (value == ".") {
+                                    throw EException(context, "invalid number!")
                                 }
+
+                                EPrimitiveToken(
+                                    value,
+                                    currentTokenSymbol as ENumberConstructor,
+                                )
+                            }
 
                             options.stringConstructor ->
                                 EPrimitiveToken(
@@ -585,11 +584,13 @@ class ExpressionParser internal constructor(
 
                             else -> throw EException(
                                 context,
-                                "unknown current token symbol ${if (currentTokenSymbol == null) {
-                                    null
-                                } else {
-                                    currentTokenSymbol!!::class
-                                }}!",
+                                "unknown current token symbol ${
+                                    if (currentTokenSymbol == null) {
+                                        null
+                                    } else {
+                                        currentTokenSymbol!!::class
+                                    }
+                                }!",
                             )
                         }
 
@@ -690,4 +691,14 @@ class ExpressionParser internal constructor(
         } else {
             tokens[tokens.lastIndex - 1] to tokens[tokens.lastIndex]
         }
+
+    private inline val ESymbol.allIdentifiers: List<String>
+        get() = listOf(identifier) + aliases
+
+    private inline fun <T : ESymbol> List<T>.associateByAllIdentifiers(): Map<String, T> =
+        flatMap { it.allIdentifiers.map { identifier -> identifier to it } }
+            .associateBy({ it.first }, { it.second })
+
+    private inline fun <T : ESymbol> List<T>.getAllIdentifiers(): List<String> =
+        flatMap { it.allIdentifiers }
 }

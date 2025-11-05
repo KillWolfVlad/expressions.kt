@@ -8,4 +8,10 @@ sealed interface ESymbol {
      * Identifier
      */
     val identifier: String
+
+    /**
+     * Aliases
+     */
+    val aliases: List<String>
+        get() = emptyList()
 }
