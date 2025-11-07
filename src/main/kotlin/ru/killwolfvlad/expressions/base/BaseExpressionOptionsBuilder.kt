@@ -1,8 +1,10 @@
 package ru.killwolfvlad.expressions.base
 
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperator
+import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseDivideBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperator
+import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseExponentiationBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterOrEqualBinaryOperator
@@ -11,14 +13,21 @@ import ru.killwolfvlad.expressions.base.binaryOperators.BaseLessOrEqualBinaryOpe
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseMinusBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseMultiplyBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperator
+import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseOrBinaryOperator
+import ru.killwolfvlad.expressions.base.binaryOperators.BaseOrBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BasePlusBinaryOperator
 import ru.killwolfvlad.expressions.base.functions.BaseFunFunction
 import ru.killwolfvlad.expressions.base.functions.BaseIfFunction
 import ru.killwolfvlad.expressions.base.functions.BaseVarFunction
+import ru.killwolfvlad.expressions.base.interfaces.BaseBinaryOperatorApplier
+import ru.killwolfvlad.expressions.base.interfaces.BaseLeftUnaryOperatorApplier
+import ru.killwolfvlad.expressions.base.interfaces.BaseRightUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperator
+import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BasePlusLeftUnaryOperator
+import ru.killwolfvlad.expressions.base.memory.BaseApplier
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.base.primitives.BaseBooleanConstructor
 import ru.killwolfvlad.expressions.base.primitives.BaseNumberConstructor
@@ -77,7 +86,26 @@ class BaseExpressionOptionsBuilder {
     private var booleanConstructor: EBooleanConstructor = BaseBooleanConstructor()
     private var statementConstructor: EStatementConstructor = BaseStatementConstructor()
 
-    private var memoryFactory: () -> EMemory = { BaseMemory() }
+    private val baseBinaryOperatorAppliers = mutableListOf(
+        BaseAndBinaryOperatorApplier(),
+        BaseEqualBinaryOperatorApplier(),
+        BaseNotEqualBinaryOperatorApplier(),
+        BaseOrBinaryOperatorApplier(),
+    )
+
+    private val baseLeftUnaryOperatorAppliers = mutableListOf<BaseLeftUnaryOperatorApplier>(BaseNotLeftUnaryOperatorApplier())
+
+    private val baseRightUnaryOperatorAppliers = mutableListOf<BaseRightUnaryOperatorApplier>()
+
+    private var applier = lazy {
+        BaseApplier(
+            baseBinaryOperatorAppliers,
+            baseLeftUnaryOperatorAppliers,
+            baseRightUnaryOperatorAppliers,
+        )
+    }
+
+    private var memoryFactory: () -> EMemory = { BaseMemory(applier.value) }
 
     fun add(value: EBinaryOperator) {
         binaryOperators.add(value)
@@ -109,6 +137,18 @@ class BaseExpressionOptionsBuilder {
 
     fun primitive(value: EStatementConstructor) {
         statementConstructor = value
+    }
+
+    fun add(value: BaseBinaryOperatorApplier) {
+        baseBinaryOperatorAppliers.add(value)
+    }
+
+    fun add(value: BaseLeftUnaryOperatorApplier) {
+        baseLeftUnaryOperatorAppliers.add(value)
+    }
+
+    fun add(value: BaseRightUnaryOperatorApplier) {
+        baseRightUnaryOperatorAppliers.add(value)
     }
 
     fun memory(value: () -> EMemory) {

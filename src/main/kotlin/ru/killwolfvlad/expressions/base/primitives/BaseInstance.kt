@@ -1,52 +1,33 @@
 package ru.killwolfvlad.expressions.base.primitives
 
+import ru.killwolfvlad.expressions.base.memory.BaseMemory
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
-import ru.killwolfvlad.expressions.core.exceptions.EException
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
 import ru.killwolfvlad.expressions.core.symbols.EBinaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ELeftUnaryOperator
 import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
-import ru.killwolfvlad.expressions.core.tokens.EToken
 
 /**
- * Base statement instance
+ * Base instance
  */
-open class BaseStatementInstance(
-    override val value: List<EToken>,
-) : BaseInstance() {
-    companion object {
-        private val context = BaseStatementInstance::class.simpleName!!
-    }
-
+abstract class BaseInstance : EInstance {
     override suspend fun applyBinaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         other: EInstance,
         operator: EBinaryOperator,
-    ): EInstance =
-        throw EException(
-            context,
-            "unsupported binary operator type ${operator::class.simpleName}!",
-        )
+    ): EInstance = (memory as BaseMemory).applier.applyBinaryOperator(this, other, expressionExecutor, memory, operator)
 
     override suspend fun applyLeftUnaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ELeftUnaryOperator,
-    ): EInstance =
-        throw EException(
-            context,
-            "unsupported left unary operator type ${operator::class.simpleName}!",
-        )
+    ): EInstance = (memory as BaseMemory).applier.applyLeftUnaryOperator(this, expressionExecutor, memory, operator)
 
     override suspend fun applyRightUnaryOperator(
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
         operator: ERightUnaryOperator,
-    ): EInstance =
-        throw EException(
-            context,
-            "unsupported right unary operator type ${operator::class.simpleName}!",
-        )
+    ): EInstance = (memory as BaseMemory).applier.applyRightUnaryOperator(this, expressionExecutor, memory, operator)
 }

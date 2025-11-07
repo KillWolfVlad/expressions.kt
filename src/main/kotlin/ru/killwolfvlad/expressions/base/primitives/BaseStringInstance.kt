@@ -21,7 +21,7 @@ import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
  */
 open class BaseStringInstance(
     override val value: String,
-) : EInstance {
+) : BaseInstance() {
     companion object {
         private val context = BaseStringInstance::class.simpleName!!
     }

@@ -7,6 +7,10 @@ import ru.killwolfvlad.expressions.core.interfaces.EMemory
  */
 open class BaseMemory(
     /**
+     * Applier
+     */
+    val applier: BaseApplier,
+    /**
      * Variables storage
      */
     val variables: MutableMap<String, BaseVariableRef> = mutableMapOf(),
@@ -20,6 +24,7 @@ open class BaseMemory(
      */
     open fun copy() =
         BaseMemory(
+            applier,
             variables.toMutableMap(),
             functions.toMutableMap(),
         )

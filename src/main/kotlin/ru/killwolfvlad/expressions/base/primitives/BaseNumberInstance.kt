@@ -32,9 +32,9 @@ import kotlin.plus
  */
 open class BaseNumberInstance(
     override val value: BigDecimal,
-    protected val scale: Int,
-    protected val roundingMode: RoundingMode,
-) : EInstance {
+    val scale: Int,
+    val roundingMode: RoundingMode,
+) : BaseInstance() {
     companion object {
         private val context = BaseNumberInstance::class.simpleName!!
     }
@@ -163,12 +163,12 @@ open class BaseNumberInstance(
                 )
 
             // TODO: add support to add dymacaly add support to new operators
-            is ExtraKiloRightUnaryOperator ->
-                BaseNumberInstance(
-                    value.times(BigDecimal(1000)).setScale(scale, roundingMode),
-                    scale,
-                    roundingMode,
-                )
+//            is ExtraKiloRightUnaryOperator ->
+//                BaseNumberInstance(
+//                    value.times(BigDecimal(1000)).setScale(scale, roundingMode),
+//                    scale,
+//                    roundingMode,
+//                )
 
             else -> throw EException(
                 context,
