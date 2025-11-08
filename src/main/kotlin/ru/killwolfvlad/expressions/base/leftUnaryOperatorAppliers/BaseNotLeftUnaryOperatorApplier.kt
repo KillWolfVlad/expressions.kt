@@ -1,6 +1,7 @@
-package ru.killwolfvlad.expressions.base.leftUnaryOperators
+package ru.killwolfvlad.expressions.base.leftUnaryOperatorAppliers
 
 import ru.killwolfvlad.expressions.base.interfaces.BaseLeftUnaryOperatorApplier
+import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.primitives.BaseBooleanInstance
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.interfaces.EInstance

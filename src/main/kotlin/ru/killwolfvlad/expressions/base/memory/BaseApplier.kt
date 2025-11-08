@@ -15,25 +15,25 @@ import ru.killwolfvlad.expressions.core.symbols.ERightUnaryOperator
  * Base applier
  */
 open class BaseApplier(
-    baseBinaryOperatorAppliers: List<BaseBinaryOperatorApplier>,
-    baseLeftUnaryOperatorAppliers: List<BaseLeftUnaryOperatorApplier>,
-    baseRightUnaryOperatorAppliers: List<BaseRightUnaryOperatorApplier>,
+    binaryOperatorAppliers: List<BaseBinaryOperatorApplier>,
+    leftUnaryOperatorAppliers: List<BaseLeftUnaryOperatorApplier>,
+    rightUnaryOperatorAppliers: List<BaseRightUnaryOperatorApplier>,
 ) {
     // TODO: add validation to duplications!
 
-    protected val binaryOperatorsMap =
-        baseBinaryOperatorAppliers.flatMap { it.types.map { typePair -> Triple(it.operator, typePair, it) } }
+    protected val binaryOperatorAppliersMap =
+        binaryOperatorAppliers.flatMap { it.types.map { typePair -> Triple(it.operator, typePair, it) } }
             .groupBy { it.first }
             .mapValues { (_, v) -> v.groupBy({ it.second.first }, { it.second.second to it.third }) }
             .mapValues { (_, v1) -> v1.mapValues { (_, v2) -> v2.toMap() } }
 
     protected val leftUnaryOperatorAppliersMap =
-        baseLeftUnaryOperatorAppliers.flatMap { it.types.map { type -> Triple(it.operator, type, it) } }
+        leftUnaryOperatorAppliers.flatMap { it.types.map { type -> Triple(it.operator, type, it) } }
             .groupBy { it.first }
             .mapValues { (_, v) -> v.associateBy({ it.second }, { it.third }) }
 
     protected val rightUnaryOperatorAppliersMap =
-        baseRightUnaryOperatorAppliers.flatMap { it.types.map { type -> Triple(it.operator, type, it) } }
+        rightUnaryOperatorAppliers.flatMap { it.types.map { type -> Triple(it.operator, type, it) } }
             .groupBy { it.first }
             .mapValues { (_, v) -> v.associateBy({ it.second }, { it.third }) }
 
@@ -47,7 +47,7 @@ open class BaseApplier(
         memory: EMemory,
         operator: EBinaryOperator,
     ): EInstance {
-        val typesMap = binaryOperatorsMap[operator::class] ?: throw EException(
+        val typesMap = binaryOperatorAppliersMap[operator::class] ?: throw EException(
             operator::class.simpleName!!,
             "don't have any implementations!",
         )

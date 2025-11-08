@@ -1,5 +1,6 @@
-package ru.killwolfvlad.expressions.base.binaryOperators
+package ru.killwolfvlad.expressions.base.binaryOperatorAppliers
 
+import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperator
 import ru.killwolfvlad.expressions.base.interfaces.BaseBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.primitives.BaseBooleanInstance
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
@@ -7,10 +8,10 @@ import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
 
 /**
- * Base not equal binary operator applier
+ * Base and binary operator applier
  */
-open class BaseNotEqualBinaryOperatorApplier : BaseBinaryOperatorApplier {
-    override val operator = BaseNotEqualBinaryOperator::class
+open class BaseAndBinaryOperatorApplier : BaseBinaryOperatorApplier {
+    override val operator = BaseAndBinaryOperator::class
 
     override val types = listOf(BaseBooleanInstance::class to BaseBooleanInstance::class)
 
@@ -19,11 +20,5 @@ open class BaseNotEqualBinaryOperatorApplier : BaseBinaryOperatorApplier {
         other: EInstance,
         expressionExecutor: ExpressionExecutor,
         memory: EMemory,
-    ): EInstance {
-        if (value is BaseBooleanInstance && other is BaseBooleanInstance) {
-            return BaseBooleanInstance(value.value != other.value)
-        }
-
-        throw NotImplementedError() // TODO: fix error
-    }
+    ): EInstance = BaseBooleanInstance((value as BaseBooleanInstance).value && (other as BaseBooleanInstance).value)
 }

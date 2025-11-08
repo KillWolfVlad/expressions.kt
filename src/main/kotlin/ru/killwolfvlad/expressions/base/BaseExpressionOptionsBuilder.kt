@@ -1,10 +1,10 @@
 package ru.killwolfvlad.expressions.base
 
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperator
-import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperatorApplier
+import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseAndBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseDivideBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperator
-import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperatorApplier
+import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseExponentiationBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterOrEqualBinaryOperator
@@ -13,7 +13,7 @@ import ru.killwolfvlad.expressions.base.binaryOperators.BaseLessOrEqualBinaryOpe
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseMinusBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseMultiplyBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperator
-import ru.killwolfvlad.expressions.base.binaryOperators.BaseNotEqualBinaryOperatorApplier
+import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseNotEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseOrBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseOrBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BasePlusBinaryOperator
@@ -25,7 +25,7 @@ import ru.killwolfvlad.expressions.base.interfaces.BaseLeftUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.interfaces.BaseRightUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseMinusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperator
-import ru.killwolfvlad.expressions.base.leftUnaryOperators.BaseNotLeftUnaryOperatorApplier
+import ru.killwolfvlad.expressions.base.leftUnaryOperatorAppliers.BaseNotLeftUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.leftUnaryOperators.BasePlusLeftUnaryOperator
 import ru.killwolfvlad.expressions.base.memory.BaseApplier
 import ru.killwolfvlad.expressions.base.memory.BaseMemory
@@ -48,7 +48,7 @@ import ru.killwolfvlad.expressions.core.symbols.EStringConstructor
 /**
  * Base expression options builder
  */
-class BaseExpressionOptionsBuilder {
+class BaseExpressionOptionsBuilder internal constructor() {
     private val binaryOperators = mutableListOf(
         BasePlusBinaryOperator(),
         BaseMinusBinaryOperator(),
@@ -86,22 +86,22 @@ class BaseExpressionOptionsBuilder {
     private var booleanConstructor: EBooleanConstructor = BaseBooleanConstructor()
     private var statementConstructor: EStatementConstructor = BaseStatementConstructor()
 
-    private val baseBinaryOperatorAppliers = mutableListOf(
+    private val binaryOperatorAppliers = mutableListOf(
         BaseAndBinaryOperatorApplier(),
         BaseEqualBinaryOperatorApplier(),
         BaseNotEqualBinaryOperatorApplier(),
         BaseOrBinaryOperatorApplier(),
     )
 
-    private val baseLeftUnaryOperatorAppliers = mutableListOf<BaseLeftUnaryOperatorApplier>(BaseNotLeftUnaryOperatorApplier())
+    private val leftUnaryOperatorAppliers = mutableListOf<BaseLeftUnaryOperatorApplier>(BaseNotLeftUnaryOperatorApplier())
 
-    private val baseRightUnaryOperatorAppliers = mutableListOf<BaseRightUnaryOperatorApplier>()
+    private val rightUnaryOperatorAppliers = mutableListOf<BaseRightUnaryOperatorApplier>()
 
     private var applier = lazy {
         BaseApplier(
-            baseBinaryOperatorAppliers,
-            baseLeftUnaryOperatorAppliers,
-            baseRightUnaryOperatorAppliers,
+            binaryOperatorAppliers,
+            leftUnaryOperatorAppliers,
+            rightUnaryOperatorAppliers,
         )
     }
 
@@ -140,23 +140,23 @@ class BaseExpressionOptionsBuilder {
     }
 
     fun add(value: BaseBinaryOperatorApplier) {
-        baseBinaryOperatorAppliers.add(value)
+        binaryOperatorAppliers.add(value)
     }
 
     fun add(value: BaseLeftUnaryOperatorApplier) {
-        baseLeftUnaryOperatorAppliers.add(value)
+        leftUnaryOperatorAppliers.add(value)
     }
 
     fun add(value: BaseRightUnaryOperatorApplier) {
-        baseRightUnaryOperatorAppliers.add(value)
+        rightUnaryOperatorAppliers.add(value)
     }
 
     fun memory(value: () -> EMemory) {
         memoryFactory = value
     }
 
-    internal fun build(): EOptions {
-        return EOptions(
+    internal fun build(): EOptions =
+        EOptions(
             binaryOperators = binaryOperators,
             leftUnaryOperators = leftUnaryOperators,
             rightUnaryOperators = rightUnaryOperators,
@@ -172,5 +172,4 @@ class BaseExpressionOptionsBuilder {
             statementConstructor = statementConstructor,
             memoryFactory = memoryFactory,
         )
-    }
 }

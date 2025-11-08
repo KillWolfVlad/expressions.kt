@@ -1,19 +1,21 @@
-package ru.killwolfvlad.expressions.extra.rightUnaryOperators
+package ru.killwolfvlad.expressions.extra.rightUnaryOperatorAppliers
 
 import ru.killwolfvlad.expressions.base.interfaces.BaseRightUnaryOperatorApplier
 import ru.killwolfvlad.expressions.base.primitives.BaseNumberInstance
+import ru.killwolfvlad.expressions.base.primitives.BasePercentInstance
 import ru.killwolfvlad.expressions.core.ExpressionExecutor
 import ru.killwolfvlad.expressions.core.interfaces.EInstance
 import ru.killwolfvlad.expressions.core.interfaces.EMemory
+import ru.killwolfvlad.expressions.extra.rightUnaryOperators.ExtraKiloRightUnaryOperator
 import java.math.BigDecimal
 
 /**
- * Extra Kilo right unary operator applier
+ * Extra kilo right unary operator applier
  */
 open class ExtraKiloRightUnaryOperatorApplier : BaseRightUnaryOperatorApplier {
     override val operator = ExtraKiloRightUnaryOperator::class
 
-    override val types = listOf(BaseNumberInstance::class)
+    override val types = listOf(BaseNumberInstance::class, BasePercentInstance::class)
 
     override suspend fun apply(
         value: EInstance,
