@@ -2,9 +2,9 @@ package ru.killwolfvlad.expressions.base
 
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseAndBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseAndBinaryOperatorApplier
+import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseDivideBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseEqualBinaryOperator
-import ru.killwolfvlad.expressions.base.binaryOperatorAppliers.BaseEqualBinaryOperatorApplier
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseExponentiationBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterBinaryOperator
 import ru.killwolfvlad.expressions.base.binaryOperators.BaseGreaterOrEqualBinaryOperator
@@ -89,7 +89,7 @@ class BaseExpressionOptionsBuilder internal constructor() {
     private val binaryOperatorAppliers = mutableListOf(
         BaseAndBinaryOperatorApplier(),
         BaseEqualBinaryOperatorApplier(),
-        BaseNotEqualBinaryOperatorApplier(),
+        BaseNotEqualBinaryOperatorApplier(binaryOperators.single { it is BaseEqualBinaryOperator } as BaseEqualBinaryOperator),
         BaseOrBinaryOperatorApplier(),
     )
 
